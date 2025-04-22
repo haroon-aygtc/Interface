@@ -1,20 +1,25 @@
 import { apiService } from "./api.service";
 import { API_ENDPOINTS } from "@/config/api.config";
 import { User } from "@/types/auth";
+import * as userRepository from "@/repositories/user.repository";
 
 export const userService = {
   /**
    * Get all users
    */
   async getUsers(): Promise<User[]> {
-    return apiService.get<User[]>(API_ENDPOINTS.USERS);
+    return userRepository.getAllUsers();
   },
 
   /**
    * Get a user by ID
    */
   async getUserById(id: string): Promise<User> {
-    return apiService.get<User>(API_ENDPOINTS.USER(id));
+    const user = await userRepository.findUserById(id);
+    if (!user) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+    return user;
   },
 
   /**
@@ -23,23 +28,41 @@ export const userService = {
   async createUser(
     userData: Omit<User, "id" | "createdAt" | "updatedAt">,
   ): Promise<User> {
-    const now = new Date().toISOString();
-    return apiService.post<User>(API_ENDPOINTS.USERS, {
-      id: `user-${Date.now()}`,
-      ...userData,
-      createdAt: now,
-      updatedAt: now,
-    });
+    // Hash password (commented out for demo, uncomment in production)
+    /*
+    if (userData.password) {
+      const bcrypt = require('bcrypt');
+      const saltRounds = 10;
+      userData.password = await bcrypt.hash(userData.password, saltRounds);
+    }
+    */
+
+    return userRepository.createUser(userData);
   },
 
   /**
    * Update a user
    */
   async updateUser(id: string, userData: Partial<User>): Promise<User> {
-    return apiService.patch<User>(API_ENDPOINTS.USER(id), {
+    // Hash password if provided (commented out for demo, uncomment in production)
+    /*
+    if (userData.password) {
+      const bcrypt = require('bcrypt');
+      const saltRounds = 10;
+      userData.password = await bcrypt.hash(userData.password, saltRounds);
+    }
+    */
+
+    const updatedUser = await userRepository.updateUser(id, {
       ...userData,
       updatedAt: new Date().toISOString(),
     });
+
+    if (!updatedUser) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+
+    return updatedUser;
   },
 
   /**
