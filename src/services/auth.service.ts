@@ -9,6 +9,11 @@ import {
   RoleWithPermissions,
 } from "@/types/auth";
 
+import * as userRepository from "@/repositories/user.repository";
+import * as sessionRepository from "@/repositories/session.repository";
+import * as permissionRepository from "@/repositories/permission.repository";
+import * as passwordResetRepository from "@/repositories/passwordReset.repository";
+
 export const authService = {
   /**
    * Login with email and password

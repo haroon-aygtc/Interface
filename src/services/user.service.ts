@@ -46,6 +46,9 @@ export const userService = {
    * Delete a user
    */
   async deleteUser(id: string): Promise<void> {
-    await apiService.delete(API_ENDPOINTS.USER(id));
+    const success = await userRepository.deleteUser(id);
+    if (!success) {
+      throw new Error(`User with ID ${id} not found`);
+    }
   },
 };
