@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/routes";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -8,8 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/ui/use-toast";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, User, Mail, Lock, Shield } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { motion } from "framer-motion";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -24,68 +31,79 @@ export default function Register() {
   });
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState({});
+  const [passwordStrength, setPasswordStrength] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "password") {
+      setPasswordStrength(getPasswordStrengthInfo(value).label);
+    }
   };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Email is invalid";
-    }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 8)
       newErrors.password = "Password must be at least 8 characters";
-    }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
-    }
 
-    if (!acceptTerms) {
+    if (!acceptTerms)
       newErrors.terms = "You must accept the terms and conditions";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
-
-    // Call the register function from AuthContext
     register(formData.name, formData.email, formData.password);
 
-    // Show success toast
     toast({
       title: "Registration Successful",
       description: "Your account has been created successfully.",
       variant: "default",
     });
 
-    // Navigate to the dashboard after a short delay
     setTimeout(() => {
       navigate(ROUTES.DASHBOARD);
       setIsSubmitting(false);
     }, 800);
+  };
+
+  const getPasswordStrengthInfo = (password) => {
+    let strength = "weak";
+    if (password.length >= 8) {
+      const hasLower = /[a-z]/.test(password);
+      const hasUpper = /[A-Z]/.test(password);
+      const hasDigit = /\d/.test(password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      if (hasLower && hasUpper && hasDigit && hasSpecial) strength = "strong";
+      else if (hasLower || hasUpper || hasDigit || hasSpecial)
+        strength = "medium";
+    }
+    return { label: strength };
+  };
+
+  const formItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
+    }),
   };
 
   return (
@@ -94,139 +112,103 @@ export default function Register() {
       description="Sign up to get started with Al Yalayis services"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className={`${theme === 'dark' ? 'text-white' : 'text-[#09090B]'}`}>Full Name</Label>
+        {["name", "email", "password", "confirmPassword"].map((field, i) => (
+          <motion.div
+            className="space-y-2"
+            key={field}
+            initial="hidden"
+            animate="visible"
+            custom={i}
+            variants={formItemVariants}
+          >
+            <Label
+              htmlFor={field}
+              className={theme === "dark" ? "text-white" : "text-[#09090B]"}
+            >
+              {field === "name"
+                ? "Full Name"
+                : field === "email"
+                  ? "Email"
+                  : field === "password"
+                    ? "Password"
+                    : "Confirm Password"}
+            </Label>
             <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="John Doe"
-              value={formData.name}
+              id={field}
+              name={field}
+              type={
+                field.includes("password")
+                  ? "password"
+                  : field === "email"
+                    ? "email"
+                    : "text"
+              }
+              placeholder={
+                field === "name"
+                  ? "John Doe"
+                  : field === "email"
+                    ? "name@example.com"
+                    : "••••••••"
+              }
+              value={formData[field]}
               onChange={handleChange}
               disabled={isSubmitting}
-              className={`${theme === 'dark' ? 'bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50' : 'bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50'} ${errors.name ? "border-destructive" : ""}`}
+              prefix={
+                field === "name" ? (
+                  <User className="h-4 w-4 text-[#D8A23B]" />
+                ) : field === "email" ? (
+                  <Mail className="h-4 w-4 text-[#D8A23B]" />
+                ) : (
+                  <Lock className="h-4 w-4 text-[#D8A23B]" />
+                )
+              }
+              className={`${theme === "dark" ? "bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50" : "bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50"} ${errors[field] ? "border-destructive" : ""} transition-all duration-200 hover:border-[#D8A23B]`}
             />
-            {errors.name && (
-              <p className="text-sm text-[#D8A23B]">{errors.name}</p>
+            {errors[field] && (
+              <p className="text-sm text-[#D8A23B] mt-1 flex items-center gap-1">
+                {errors[field]}
+              </p>
             )}
-          </div>
+          </motion.div>
+        ))}
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className={`${theme === 'dark' ? 'text-white' : 'text-[#09090B]'}`}>Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="name@example.com"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className={`${theme === 'dark' ? 'bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50' : 'bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50'} ${errors.email ? "border-destructive" : ""}`}
-            />
-            {errors.email && (
-              <p className="text-sm text-[#D8A23B]">{errors.email}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className={`${theme === 'dark' ? 'text-white' : 'text-[#09090B]'}`}>Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className={`${theme === 'dark' ? 'bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50' : 'bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50'} ${errors.password ? "border-destructive" : ""}`}
-            />
-            {errors.password && (
-              <p className="text-sm text-[#D8A23B]">{errors.password}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className={`${theme === 'dark' ? 'text-white' : 'text-[#09090B]'}`}>Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="••••••••"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className={`${theme === 'dark' ? 'bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50' : 'bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50'} ${errors.confirmPassword ? "border-destructive" : ""}`}
-            />
-            {errors.confirmPassword && (
-              <p className="text-sm text-[#D8A23B]">{errors.confirmPassword}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-start space-x-2">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={4}
+          variants={formItemVariants}
+        >
+          <label className="flex items-center gap-2 text-sm">
             <Checkbox
               id="terms"
               checked={acceptTerms}
-              onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-              disabled={isSubmitting}
-              className={`border-[#D8A23B]/30 ${errors.terms ? "border-destructive" : ""}`}
+              onCheckedChange={() => setAcceptTerms(!acceptTerms)}
             />
-            <Label
-              htmlFor="terms"
-              className={`text-sm font-normal cursor-pointer ${theme === 'dark' ? 'text-white/80' : 'text-[#09090B]/80'}`}
-            >
-              I agree to the{" "}
-              <Link
-                to="/terms-conditions"
-                className="text-[#D8A23B] hover:text-[#D8A23B]/90"
-                target="_blank"
-              >
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link
-                to="/privacy-policy"
-                className="text-[#D8A23B] hover:text-[#D8A23B]/90"
-                target="_blank"
-              >
-                Privacy Policy
-              </Link>
-            </Label>
-          </div>
+            I accept the{" "}
+            <a href="#" className="text-[#D8A23B] underline">
+              Terms & Conditions
+            </a>
+          </label>
           {errors.terms && (
-            <p className="text-sm text-[#D8A23B]">{errors.terms}</p>
+            <p className="text-sm text-[#D8A23B] mt-1">{errors.terms}</p>
           )}
-        </div>
+        </motion.div>
 
-        <Button
-          type="submit"
-          className="w-full bg-[#D8A23B] text-[#09090B] hover:bg-[#D8A23B]/90 border-none"
-          disabled={isSubmitting}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={5}
+          variants={formItemVariants}
         >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
-            </>
-          ) : (
-            <>
-              Create Account
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-
-        <div className={`text-center text-sm ${theme === 'dark' ? 'text-white/80' : 'text-[#09090B]/80'}`}>
-          Already have an account?{" "}
-          <Link
-            to={ROUTES.LOGIN}
-            className="text-[#D8A23B] font-medium hover:text-[#D8A23B]/90"
-          >
-            Sign in
-          </Link>
-        </div>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowRight className="mr-2 h-4 w-4" />
+            )}{" "}
+            Sign Up
+          </Button>
+        </motion.div>
       </form>
     </AuthLayout>
   );

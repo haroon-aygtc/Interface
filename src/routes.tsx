@@ -14,7 +14,7 @@ import {
   SystemConfigPanelWrapper,
   KnowledgeBasePanelWrapper,
   UserManagementPanelWrapper,
-  AIInsightsPanelWrapper
+  AIInsightsPanelWrapper,
 } from "./components/dashboard/wrappers/AdminPanelWrappers";
 import AIIntegrationPanelWrapper from "./components/dashboard/wrappers/AIIntegrationPanelWrapper";
 import AIModelConfigPanelWrapper from "./components/dashboard/wrappers/AIModelConfigPanelWrapper";
@@ -296,6 +296,11 @@ const routes = [
   {
     path: ROUTES.KNOWLEDGE,
     element: <Navigate to={ROUTES.KNOWLEDGE_BASE} replace />,
+  },
+  // Allow Tempo routes
+  {
+    path: "/tempobook/*",
+    element: null,
   },
   // Default redirect for unknown routes
   {

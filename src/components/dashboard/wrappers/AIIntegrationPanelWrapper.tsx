@@ -1,9 +1,10 @@
-import React from 'react';
-import DashboardPage from '@/components/layouts/DashboardPage';
-import AIIntegrationPanel from '@/components/dashboard/AIIntegrationPanel';
-import { ROUTES } from '@/routes';
-import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import React from "react";
+import DashboardPage from "@/components/layouts/DashboardPage";
+import AIIntegrationPanel from "@/components/dashboard/AIIntegrationPanel";
+import { ROUTES } from "@/routes";
+import { Button } from "@/components/ui/button";
+import { Save } from "lucide-react";
+import { AdminContent } from "@/components/ui/admin-layout";
 
 const AIIntegrationPanelWrapper: React.FC = () => {
   return (
@@ -12,7 +13,7 @@ const AIIntegrationPanelWrapper: React.FC = () => {
       description="Configure and test your AI assistant"
       breadcrumbItems={[
         { label: "Dashboard", href: ROUTES.DASHBOARD },
-        { label: "AI Integration" }
+        { label: "AI Integration" },
       ]}
       actions={
         <Button className="gap-2">
@@ -21,7 +22,9 @@ const AIIntegrationPanelWrapper: React.FC = () => {
         </Button>
       }
     >
-      <AIIntegrationPanel />
+      <AdminContent>
+        <AIIntegrationPanel />
+      </AdminContent>
     </DashboardPage>
   );
 };

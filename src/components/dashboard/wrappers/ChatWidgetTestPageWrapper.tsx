@@ -1,9 +1,10 @@
-import React from 'react';
-import DashboardPage from '@/components/layouts/DashboardPage';
-import ChatWidgetTestPage from '@/components/dashboard/ChatWidgetTestPage';
-import { ROUTES } from '@/routes';
-import { Button } from '@/components/ui/button';
-import { Maximize } from 'lucide-react';
+import React from "react";
+import DashboardPage from "@/components/layouts/DashboardPage";
+import ChatWidgetTestPage from "@/components/dashboard/ChatWidgetTestPage";
+import { ROUTES } from "@/routes";
+import { Button } from "@/components/ui/button";
+import { Maximize } from "lucide-react";
+import { AdminContent } from "@/components/ui/admin-layout";
 
 const ChatWidgetTestPageWrapper: React.FC = () => {
   return (
@@ -13,7 +14,7 @@ const ChatWidgetTestPageWrapper: React.FC = () => {
       breadcrumbItems={[
         { label: "Dashboard", href: ROUTES.DASHBOARD },
         { label: "Integration", href: ROUTES.INTEGRATION },
-        { label: "Widget Test" }
+        { label: "Widget Test" },
       ]}
       actions={
         <Button variant="outline" className="gap-2">
@@ -22,7 +23,9 @@ const ChatWidgetTestPageWrapper: React.FC = () => {
         </Button>
       }
     >
-      <ChatWidgetTestPageWithoutHeader />
+      <AdminContent>
+        <ChatWidgetTestPageWithoutHeader />
+      </AdminContent>
     </DashboardPage>
   );
 };
