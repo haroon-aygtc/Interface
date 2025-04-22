@@ -1,137 +1,255 @@
-import db from "@/utils/db";
+import { apiService, ApiError } from "./api.service";
+import { API_ENDPOINTS } from "@/config/api.config";
 import {
   User,
   AuthResponse,
   LoginCredentials,
   RegisterCredentials,
   ResetPasswordCredentials,
+  RoleWithPermissions,
 } from "@/types/auth";
 
-// Simulate API response delay
-const simulateDelay = (ms: number = 500) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
-// Simulate API error
-class ApiError extends Error {
-  statusCode: number;
-
-  constructor(message: string, statusCode: number = 400) {
-    super(message);
-    this.statusCode = statusCode;
-    this.name = "ApiError";
-  }
-}
+import * as userRepository from "@/repositories/user.repository";
+import * as sessionRepository from "@/repositories/session.repository";
+import * as permissionRepository from "@/repositories/permission.repository";
+import * as passwordResetRepository from "@/repositories/passwordReset.repository";
 
 export const authService = {
   /**
    * Login with email and password
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    await simulateDelay();
+    try {
+      // Find user by email
+      const users = await apiService.get<User[]>(
+        `${API_ENDPOINTS.USERS}?email=${credentials.email}`,
+      );
 
-    const { email, password } = credentials;
+      if (users.length === 0) {
+        throw new ApiError("Invalid email or password", 401);
+      }
 
-    // In a real API, we would send these credentials to the server
-    // For now, we'll simulate authentication with our mock database
-    const user = await db.findUserByEmail(email);
+      const user = users[0];
 
-    if (!user) {
-      throw new ApiError("Invalid email or password", 401);
+      // In a real implementation, we would verify the password hash
+      // For this mock, we'll assume any password is valid
+
+      // Create a new session
+      const session = await apiService.post<{ id: string; token: string }>(
+        API_ENDPOINTS.SESSIONS,
+        {
+          userId: user.id,
+          token: `token-${user.id}-${Date.now()}`,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+          createdAt: new Date().toISOString(),
+        },
+      );
+
+      return { user, token: session.token };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Login failed", 500);
     }
-
-    // In a real implementation, we would verify the password hash
-    // For this mock, we'll assume any password is valid
-
-    // Generate a token
-    const token = await db.createToken(user.id);
-
-    return { user, token };
   },
 
   /**
    * Register a new user
    */
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    await simulateDelay();
+    try {
+      // Check if user already exists
+      const existingUsers = await apiService.get<User[]>(
+        `${API_ENDPOINTS.USERS}?email=${credentials.email}`,
+      );
 
-    const { name, email, password } = credentials;
+      if (existingUsers.length > 0) {
+        throw new ApiError("Email already in use", 409);
+      }
 
-    // Check if user already exists
-    const existingUser = await db.findUserByEmail(email);
-    if (existingUser) {
-      throw new ApiError("Email already in use", 409);
+      // Create new user
+      const now = new Date().toISOString();
+      const user = await apiService.post<User>(API_ENDPOINTS.USERS, {
+        id: `user-${Date.now()}`,
+        name: credentials.name,
+        email: credentials.email,
+        password: credentials.password, // In a real app, this would be hashed
+        role: "user", // Default role for new users
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Create a new session
+      const session = await apiService.post<{ id: string; token: string }>(
+        API_ENDPOINTS.SESSIONS,
+        {
+          userId: user.id,
+          token: `token-${user.id}-${Date.now()}`,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+          createdAt: now,
+        },
+      );
+
+      return { user, token: session.token };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Registration failed", 500);
     }
-
-    // Create new user
-    // In a real implementation, we would hash the password
-    const user = await db.createUser({
-      name,
-      email,
-      role: "user", // Default role for new users
-    });
-
-    // Generate a token
-    const token = await db.createToken(user.id);
-
-    return { user, token };
   },
 
   /**
    * Logout the current user
    */
   async logout(userId: string): Promise<void> {
-    await simulateDelay();
-    await db.removeToken(userId);
+    try {
+      // Find the user's session
+      const sessions = await apiService.get<any[]>(
+        `${API_ENDPOINTS.SESSIONS}?userId=${userId}`,
+      );
+
+      // Delete all sessions for this user
+      for (const session of sessions) {
+        await apiService.delete(API_ENDPOINTS.SESSION(session.id));
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // We don't throw here to ensure the user is always logged out client-side
+    }
   },
 
   /**
    * Send a password reset email
    */
   async forgotPassword(email: string): Promise<void> {
-    await simulateDelay();
+    try {
+      // Find user by email
+      const users = await apiService.get<User[]>(
+        `${API_ENDPOINTS.USERS}?email=${email}`,
+      );
 
-    const user = await db.findUserByEmail(email);
-    if (!user) {
-      // Don't reveal that the email doesn't exist for security reasons
-      // Just pretend we sent the email
-      return;
+      if (users.length === 0) {
+        // Don't reveal that the email doesn't exist for security reasons
+        return;
+      }
+
+      const user = users[0];
+
+      // Create a password reset token
+      await apiService.post(API_ENDPOINTS.PASSWORD_RESETS, {
+        id: `reset-${Date.now()}`,
+        userId: user.id,
+        token: `reset-token-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+        createdAt: new Date().toISOString(),
+        used: false,
+      });
+
+      // In a real implementation, we would send an email with the reset link
+      console.log(`Password reset requested for ${email}`);
+    } catch (error) {
+      console.error("Password reset error:", error);
+      // Don't throw to avoid revealing if the email exists
     }
-
-    // In a real implementation, we would generate a reset token and send an email
-    // For this mock, we'll just log it
-    console.log(`Password reset requested for ${email}`);
   },
 
   /**
    * Reset password with token
    */
   async resetPassword(credentials: ResetPasswordCredentials): Promise<void> {
-    await simulateDelay();
+    try {
+      const { token, password } = credentials;
 
-    const { token, password } = credentials;
+      // Find the reset token
+      const resets = await apiService.get<any[]>(
+        `${API_ENDPOINTS.PASSWORD_RESETS}?token=${token}&used=false`,
+      );
 
-    // In a real implementation, we would validate the token and update the password
-    // For this mock, we'll just log it
-    console.log(`Password reset with token ${token}`);
+      if (resets.length === 0) {
+        throw new ApiError("Invalid or expired token", 400);
+      }
+
+      const reset = resets[0];
+
+      // Check if token is expired
+      if (new Date(reset.expiresAt) < new Date()) {
+        throw new ApiError("Token has expired", 400);
+      }
+
+      // Update the user's password
+      const user = await apiService.get<User>(API_ENDPOINTS.USER(reset.userId));
+      await apiService.patch(API_ENDPOINTS.USER(user.id), {
+        password: password, // In a real app, this would be hashed
+        updatedAt: new Date().toISOString(),
+      });
+
+      // Mark the token as used
+      await apiService.patch(`${API_ENDPOINTS.PASSWORD_RESETS}/${reset.id}`, {
+        used: true,
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Password reset failed", 500);
+    }
   },
 
   /**
    * Get the current user from a token
    */
   async getCurrentUser(token: string): Promise<User | null> {
-    await simulateDelay(100); // Shorter delay for this common operation
-
     if (!token) return null;
 
-    return db.validateToken(token);
+    try {
+      // Find the session by token
+      const sessions = await apiService.get<any[]>(
+        `${API_ENDPOINTS.SESSIONS}?token=${token}`,
+      );
+
+      if (sessions.length === 0) {
+        return null;
+      }
+
+      const session = sessions[0];
+
+      // Check if session is expired
+      if (new Date(session.expiresAt) < new Date()) {
+        return null;
+      }
+
+      // Get the user
+      const user = await apiService.get<User>(
+        API_ENDPOINTS.USER(session.userId),
+      );
+      return user;
+    } catch (error) {
+      console.error("Get current user error:", error);
+      return null;
+    }
   },
 
   /**
    * Check if a user has a specific permission
    */
   async hasPermission(role: string, permission: string): Promise<boolean> {
-    await simulateDelay(50); // Very short delay for permission checks
+    try {
+      // Get role permissions
+      const rolePermissions = await apiService.get<RoleWithPermissions[]>(
+        `${API_ENDPOINTS.PERMISSIONS}?role=${role}`,
+      );
 
-    return db.hasPermission(role as any, permission);
+      if (rolePermissions.length === 0) {
+        return false;
+      }
+
+      // Check if the role has the permission
+      return rolePermissions[0].permissions.includes(permission);
+    } catch (error) {
+      console.error("Permission check error:", error);
+      return false;
+    }
   },
 };
