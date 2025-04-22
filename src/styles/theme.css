@@ -1,0 +1,214 @@
+/* Consolidated Theme Styles */
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animate-in {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.fade-in-80 {
+    animation-duration: 0.15s;
+}
+
+/* Theme transition */
+:root {
+    --transition-duration: 0.3s;
+}
+
+*,
+*::before,
+*::after {
+    transition: background-color var(--transition-duration) ease-in-out,
+        color var(--transition-duration) ease-in-out,
+        border-color var(--transition-duration) ease-in-out,
+        box-shadow var(--transition-duration) ease-in-out;
+}
+
+/* Base theme colors */
+:root {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    --primary: #0f172a;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #0f172a;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #f1f5f9;
+    --accent-foreground: #0f172a;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #0f172a;
+    --radius: 0.5rem;
+}
+
+/* Dark Theme */
+.dark {
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --card: #1e293b;
+    --card-foreground: #f8fafc;
+    --popover: #1e293b;
+    --popover-foreground: #f8fafc;
+    --primary: #f8fafc;
+    --primary-foreground: #0f172a;
+    --secondary: #1e293b;
+    --secondary-foreground: #f8fafc;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --accent: #1e293b;
+    --accent-foreground: #f8fafc;
+    --destructive: #ef4444;
+    --destructive-foreground: #f8fafc;
+    --border: #1e293b;
+    --input: #1e293b;
+    --ring: #cbd5e1;
+}
+
+/* Luxury Theme */
+.luxury {
+    --primary: #c6a869;
+    --primary-foreground: #0f172a;
+    --accent: #a88a48;
+    --accent-foreground: #ffffff;
+    --border: #c6a869;
+    --ring: #a88a48;
+}
+
+.dark.luxury {
+    --primary: #c6a869;
+    --primary-foreground: #0f172a;
+    --accent: #a88a48;
+    --accent-foreground: #ffffff;
+    --border: #94733a;
+    --ring: #c6a869;
+}
+
+/* Utility classes for theme-compatible styling */
+.bg-background {
+    background-color: var(--background);
+}
+
+.bg-foreground {
+    background-color: var(--foreground);
+}
+
+.bg-card {
+    background-color: var(--card);
+}
+
+.bg-popover {
+    background-color: var(--popover);
+}
+
+.bg-primary {
+    background-color: var(--primary);
+}
+
+.bg-secondary {
+    background-color: var(--secondary);
+}
+
+.bg-muted {
+    background-color: var(--muted);
+}
+
+.bg-accent {
+    background-color: var(--accent);
+}
+
+.bg-destructive {
+    background-color: var(--destructive);
+}
+
+.text-background {
+    color: var(--background);
+}
+
+.text-foreground {
+    color: var(--foreground);
+}
+
+.text-card-foreground {
+    color: var(--card-foreground);
+}
+
+.text-popover-foreground {
+    color: var(--popover-foreground);
+}
+
+.text-primary-foreground {
+    color: var(--primary-foreground);
+}
+
+.text-secondary-foreground {
+    color: var(--secondary-foreground);
+}
+
+.text-muted-foreground {
+    color: var(--muted-foreground);
+}
+
+.text-accent-foreground {
+    color: var(--accent-foreground);
+}
+
+.text-destructive-foreground {
+    color: var(--destructive-foreground);
+}
+
+.border-border {
+    border-color: var(--border);
+}
+
+.border-input {
+    border-color: var(--input);
+}
+
+.ring-ring {
+    --tw-ring-color: var(--ring);
+}
+
+/* Luxury Utility Classes */
+.luxury .luxury\:bg-gradient-to-r {
+    background-image: linear-gradient(to right, var(--background), var(--secondary));
+}
+
+.luxury .luxury\:border-gold-accent {
+    border-color: var(--primary);
+}
+
+.luxury .luxury\:text-gold-accent {
+    color: var(--primary);
+}

@@ -1,0 +1,66 @@
+/* Dashboard component styles */
+
+/* Progress bars */
+.progress-bar-blue {
+  height: 100%;
+  background-color: #3b82f6; /* blue-500 */
+  border-radius: 9999px;
+}
+
+.progress-bar-purple {
+  height: 100%;
+  background-color: #8b5cf6; /* purple-500 */
+  border-radius: 9999px;
+}
+
+.progress-bar-green {
+  height: 100%;
+  background-color: #22c55e; /* green-500 */
+  border-radius: 9999px;
+}
+
+.progress-bar-amber {
+  height: 100%;
+  background-color: #f59e0b; /* amber-500 */
+  border-radius: 9999px;
+}
+
+/* Chart indicators */
+.chart-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+}
+
+.chart-indicator-daily {
+  background-color: #3b82f6; /* blue-500 */
+}
+
+.chart-indicator-weekly {
+  background-color: #8b5cf6; /* purple-500 */
+}
+
+.chart-indicator-monthly {
+  background-color: #10b981; /* emerald-500 */
+}
+
+/* Model performance indicators */
+.model-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+}
+
+/* Query category indicators */
+.query-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  margin-right: 0.75rem;
+}
+
+/* Query progress bar */
+.query-progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+}

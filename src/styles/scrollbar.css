@@ -1,0 +1,72 @@
+/* Custom Scrollbar Styles for Al Yalayis Hub */
+
+/* Light Mode Scrollbar */
+.light-theme ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.light-theme ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background: rgba(216, 162, 59, 0.3);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(216, 162, 59, 0.5);
+}
+
+/* Dark Mode Scrollbar */
+.dark-theme ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark-theme ::-webkit-scrollbar-track {
+  background: rgba(9, 9, 11, 0.3);
+  border-radius: 10px;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+  background: rgba(216, 162, 59, 0.3);
+  border-radius: 10px;
+  border: 2px solid rgba(2, 8, 23, 0.8);
+}
+
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(216, 162, 59, 0.5);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+}
+
+.light-theme * {
+  scrollbar-color: rgba(216, 162, 59, 0.3) rgba(0, 0, 0, 0.05);
+}
+
+.dark-theme * {
+  scrollbar-color: rgba(216, 162, 59, 0.3) rgba(9, 9, 11, 0.3);
+}
+
+/* Thin scrollbar for specific elements */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
