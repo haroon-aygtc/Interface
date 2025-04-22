@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/routes";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
 import { LanguageSelector } from "./LanguageSelector";
@@ -192,11 +192,11 @@ function DashboardHeader({
                   <AvatarFallback>
                     {user?.name
                       ? user.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .substring(0, 2)
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .substring(0, 2)
                       : "U"}
                   </AvatarFallback>
                 </Avatar>

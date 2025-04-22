@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { ROUTES } from "@/routes";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +84,15 @@ export default function Login() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Helper functions for remembered email
+  const setRememberedEmail = (email: string) => {
+    localStorage.setItem("rememberedEmail", email);
+  };
+
+  const removeRememberedEmail = () => {
+    localStorage.removeItem("rememberedEmail");
   };
 
   // Load remembered email on component mount

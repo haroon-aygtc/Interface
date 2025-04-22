@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Search, Settings, User, Menu, HelpCircle, MessageSquare } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { Bell, Search, Settings, User, Menu, HelpCircle, MessageSquare, LogOut, BarChart3 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,7 @@ const ModernHeader = ({
         >
           <Menu className="h-5 w-5" />
         </Button>
-        
+
         <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 hidden md:block">
           {title}
         </h1>
