@@ -64,23 +64,35 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    register(formData.name, formData.email, formData.password);
 
-    toast({
-      title: "Registration Successful",
-      description: "Your account has been created successfully.",
-      variant: "default",
-    });
+    try {
+      await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
 
-    setTimeout(() => {
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created successfully.",
+        variant: "default",
+      });
+
       navigate(ROUTES.DASHBOARD);
+    } catch (err: any) {
+      toast({
+        title: "Registration Failed",
+        description: err.message || "Failed to create account",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 800);
+    }
   };
 
   const getPasswordStrengthInfo = (password) => {

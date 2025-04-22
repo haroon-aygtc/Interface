@@ -1,96 +1,230 @@
-import React, { createContext, useContext, useState } from 'react';
-import { mockUsers } from '@/lib/mockData';
+import React, { createContext, useState, useEffect, useCallback } from "react";
+import {
+  User,
+  AuthResponse,
+  LoginCredentials,
+  RegisterCredentials,
+  ResetPasswordCredentials,
+  PermissionValue,
+} from "@/types/auth";
+import { authService } from "@/services/auth.service";
+import {
+  setAuthToken,
+  getAuthToken,
+  removeAuthToken,
+  setUserData,
+  getUserData,
+  removeUserData,
+  clearAuthData,
+} from "@/utils/storage";
 
-// Minimal User interface for mock purposes
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}
-
-// Simplified AuthContext with only what's needed for UI demonstration
-interface AuthContextType {
+// Define the shape of the auth context
+export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => void;
-  register: (name: string, email: string, password: string) => void;
-  logout: () => void;
-  forgotPassword: (email: string) => void;
-  resetPassword: (token: string, password: string) => void;
+  error: string | null;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
+  logout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (credentials: ResetPasswordCredentials) => Promise<void>;
+  checkPermission: (permission: PermissionValue) => boolean;
+  clearError: () => void;
 }
 
 // Create context with default values
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: false,
-  login: () => {},
-  register: () => {},
-  logout: () => {},
-  forgotPassword: () => {},
-  resetPassword: () => {},
+  error: null,
+  login: async () => {},
+  register: async () => {},
+  logout: async () => {},
+  forgotPassword: async () => {},
+  resetPassword: async () => {},
+  checkPermission: () => false,
+  clearError: () => {},
 });
 
-export const useAuth = () => useContext(AuthContext);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [permissionCache, setPermissionCache] = useState<
+    Record<string, boolean>
+  >({});
 
-// Simplified AuthProvider that just provides mock authentication
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Default to logged in with admin user for demo purposes
-  const adminUser = mockUsers.find(u => u.role === 'admin');
-  const [user, setUser] = useState<User | null>(adminUser || null);
-  const [isLoading, setIsLoading] = useState(false);
+  // Initialize auth state from local storage
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const token = getAuthToken();
+        const cachedUser = getUserData();
 
-  // All functions just simulate a brief loading state and then complete
-  const simulateLoading = (callback: () => void) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      callback();
-      setIsLoading(false);
-    }, 500);
-  };
+        if (token && cachedUser) {
+          // Validate token with the server
+          const currentUser = await authService.getCurrentUser(token);
 
-  // Mock login - always succeeds with any email that matches a mock user
-  const login = (email: string, password: string) => {
-    simulateLoading(() => {
-      const foundUser = mockUsers.find(u => u.email === email);
-      if (foundUser) {
-        setUser(foundUser);
+          if (currentUser) {
+            setUser(currentUser);
+          } else {
+            // Token is invalid, clear storage
+            clearAuthData();
+          }
+        }
+      } catch (err) {
+        console.error("Failed to initialize auth:", err);
+        clearAuthData();
+      } finally {
+        setIsLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
+  }, []);
+
+  // Login function
+  const login = async (credentials: LoginCredentials): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { user, token } = await authService.login(credentials);
+
+      // Save to local storage
+      setAuthToken(token);
+      setUserData(user);
+
+      // Update state
+      setUser(user);
+    } catch (err: any) {
+      setError(err.message || "Failed to login");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Mock register - always succeeds
-  const register = (name: string, email: string, password: string) => {
-    simulateLoading(() => {
-      const newUser = {
-        id: `user-${Date.now()}`,
-        name,
-        email,
-        role: "user",
-      };
-      setUser(newUser);
-    });
+  // Register function
+  const register = async (credentials: RegisterCredentials): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { user, token } = await authService.register(credentials);
+
+      // Save to local storage
+      setAuthToken(token);
+      setUserData(user);
+
+      // Update state
+      setUser(user);
+    } catch (err: any) {
+      setError(err.message || "Failed to register");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Mock logout
-  const logout = () => {
-    setUser(null);
+  // Logout function
+  const logout = async (): Promise<void> => {
+    setIsLoading(true);
+
+    try {
+      if (user) {
+        await authService.logout(user.id);
+      }
+
+      // Clear local storage
+      clearAuthData();
+
+      // Update state
+      setUser(null);
+      setPermissionCache({});
+    } catch (err: any) {
+      setError(err.message || "Failed to logout");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Mock password reset functions
-  const forgotPassword = (email: string) => {
-    simulateLoading(() => {
-      console.log(`Mock password reset for ${email}`);
-    });
+  // Forgot password function
+  const forgotPassword = async (email: string): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await authService.forgotPassword(email);
+    } catch (err: any) {
+      setError(err.message || "Failed to process password reset");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const resetPassword = (token: string, password: string) => {
-    simulateLoading(() => {
-      console.log(`Mock password reset with token ${token}`);
-    });
+  // Reset password function
+  const resetPassword = async (
+    credentials: ResetPasswordCredentials,
+  ): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await authService.resetPassword(credentials);
+    } catch (err: any) {
+      setError(err.message || "Failed to reset password");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Check if user has a specific permission
+  const checkPermission = useCallback(
+    (permission: PermissionValue): boolean => {
+      if (!user) return false;
+
+      // Check cache first
+      const cacheKey = `${user.role}:${permission}`;
+      if (permissionCache[cacheKey] !== undefined) {
+        return permissionCache[cacheKey];
+      }
+
+      // Admin role has all permissions
+      if (user.role === "admin") {
+        setPermissionCache((prev) => ({ ...prev, [cacheKey]: true }));
+        return true;
+      }
+
+      // For other roles, check with the service
+      // This would normally be an async call, but we're making it sync for simplicity
+      // In a real app, you might want to use a more sophisticated caching strategy
+      authService
+        .hasPermission(user.role, permission)
+        .then((hasPermission) => {
+          setPermissionCache((prev) => ({
+            ...prev,
+            [cacheKey]: hasPermission,
+          }));
+        })
+        .catch((err) => {
+          console.error("Failed to check permission:", err);
+        });
+
+      // Default to false until we know for sure
+      return false;
+    },
+    [user, permissionCache],
+  );
+
+  // Clear error
+  const clearError = () => setError(null);
 
   return (
     <AuthContext.Provider
@@ -98,11 +232,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthenticated: !!user,
         isLoading,
+        error,
         login,
         register,
         logout,
         forgotPassword,
         resetPassword,
+        checkPermission,
+        clearError,
       }}
     >
       {children}

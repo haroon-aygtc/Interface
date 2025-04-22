@@ -46,7 +46,7 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -57,26 +57,33 @@ export default function Login() {
 
     // Save to local storage if remember me is checked
     if (rememberMe) {
-      localStorage.setItem("rememberedEmail", email);
+      setRememberedEmail(email);
     } else {
-      localStorage.removeItem("rememberedEmail");
+      removeRememberedEmail();
     }
 
-    // Call the login function from AuthContext
-    login(email, password);
+    try {
+      // Call the login function from AuthContext
+      await login({ email, password });
 
-    // Show success toast
-    toast({
-      title: "Login Successful",
-      description: "Welcome back! You are now logged in.",
-      variant: "default",
-    });
+      // Show success toast
+      toast({
+        title: "Login Successful",
+        description: "Welcome back! You are now logged in.",
+        variant: "default",
+      });
 
-    // Navigate to the intended destination
-    setTimeout(() => {
+      // Navigate to the intended destination
       navigate(from, { replace: true });
+    } catch (err: any) {
+      toast({
+        title: "Login Failed",
+        description: err.message || "Invalid email or password",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 800);
+    }
   };
 
   // Load remembered email on component mount
