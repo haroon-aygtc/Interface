@@ -3,35 +3,31 @@ import { useAuth } from "@/hooks/useAuth";
 import { Role } from "@/types/auth";
 
 interface RoleGateProps {
-  /**
-   * The roles allowed to access the content
-   */
-  allowedRoles: Role | Role[];
-
-  /**
-   * Content to render when user has an allowed role
-   */
+  roles: Role | Role[];
   children: React.ReactNode;
-
-  /**
-   * Optional content to render when user doesn't have an allowed role
-   */
   fallback?: React.ReactNode;
 }
 
 /**
- * Component that conditionally renders content based on user role
+ * Component that conditionally renders children based on user role
  */
 export const RoleGate: React.FC<RoleGateProps> = ({
-  allowedRoles,
+  roles,
   children,
   fallback = null,
 }) => {
   const { user } = useAuth();
 
-  if (!user) return <>{fallback}</>;
+  // Check if user has the required role
+  const hasRequiredRole = () => {
+    if (!user) return false;
 
-  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+    if (Array.isArray(roles)) {
+      return roles.includes(user.role);
+    }
 
-  return roles.includes(user.role as Role) ? <>{children}</> : <>{fallback}</>;
+    return user.role === roles;
+  };
+
+  return hasRequiredRole() ? <>{children}</> : <>{fallback}</>;
 };

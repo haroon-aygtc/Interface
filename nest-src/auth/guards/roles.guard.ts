@@ -17,6 +17,18 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
+
+    // If no user is present in the request, deny access
+    if (!user) {
+      return false;
+    }
+
+    // Admin role has access to everything
+    if (user.role === "admin") {
+      return true;
+    }
+
+    // Check if user's role matches any of the required roles
     return requiredRoles.some((role) => user.role === role);
   }
 }

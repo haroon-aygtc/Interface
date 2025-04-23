@@ -1,15 +1,15 @@
 /**
- * API configuration
+ * API configuration for NestJS backend
  */
 
-// Base URL for API requests
+// Base URL for API requests to NestJS backend
 export const API_BASE_URL =
-  process.env.API_BASE_URL || "http://localhost:3001/api";
+  process.env.API_BASE_URL || "http://localhost:3000/api";
 
 // Default request timeout in milliseconds
 export const API_TIMEOUT = parseInt(process.env.API_TIMEOUT || "10000", 10);
 
-// API endpoints
+// API endpoints for NestJS backend
 export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: "/auth/login",

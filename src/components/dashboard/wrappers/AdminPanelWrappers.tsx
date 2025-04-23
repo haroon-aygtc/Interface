@@ -2,7 +2,15 @@ import React from "react";
 import DashboardPage from "@/components/layouts/DashboardPage";
 import { ROUTES } from "@/routes";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Download, Upload, Settings, Search } from "lucide-react";
+import {
+  Plus,
+  Save,
+  Download,
+  Upload,
+  Settings,
+  Search,
+  Brain,
+} from "lucide-react";
 
 // Import all admin panel components
 import AIModelConfig from "@/components/dashboard/AIModelConfig";
@@ -256,4 +264,11 @@ export const AIInsightsPanelWrapper: React.FC = () => {
       </AdminContent>
     </DashboardPage>
   );
+};
+
+// AdminContent component for consistent admin panel styling
+const AdminContent: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  return <div className="w-full p-4 bg-background rounded-lg">{children}</div>;
 };

@@ -1,8 +1,9 @@
-// This file is deprecated and should not be used.
-// All database operations should use the MySQL implementation in the repositories.
+/**
+ * This file is deprecated and has been removed.
+ * All database operations should be performed in the NestJS backend.
+ * Frontend code should use the API service to communicate with the backend.
+ */
 
-import { User, Role, RoleWithPermissions, PERMISSIONS } from "@/types/auth";
-
-// This is a placeholder to maintain imports that might depend on this file
-// In a real application, this file should be removed and all references updated
-export default null;
+// This file is intentionally empty as it should not be used.
+// Any imports that depend on this file should be updated to use the API service instead.
+export {};

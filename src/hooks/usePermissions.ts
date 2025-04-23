@@ -16,41 +16,45 @@ export const usePermissions = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch permissions for all roles
+  const fetchAllRolePermissions = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await apiService.get(`${API_ENDPOINTS.PERMISSIONS}/roles`);
+      const permissions = data.reduce(
+        (acc: Record<string, string[]>, item: any) => {
+          acc[item.role] = item.permissions;
+          return acc;
+        },
+        {},
+      );
+      setRolePermissions(permissions);
+      return permissions;
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to fetch permissions";
+      console.error(errorMessage, err);
+      setError(errorMessage);
+
+      // Show toast notification for error
+      toast({
+        title: "Permission Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return {};
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Fetch permissions for the current user's role
   useEffect(() => {
-    if (user?.role && !rolePermissions[user.role]) {
-      setLoading(true);
-      setError(null);
-
-      apiService
-        .get(API_ENDPOINTS.PERMISSIONS)
-        .then((data: any) => {
-          const permissions = data.reduce(
-            (acc: Record<string, string[]>, item: any) => {
-              acc[item.role] = item.permissions;
-              return acc;
-            },
-            {},
-          );
-          setRolePermissions(permissions);
-        })
-        .catch((err) => {
-          const errorMessage = err.message || "Failed to fetch permissions";
-          console.error(errorMessage, err);
-          setError(errorMessage);
-
-          // Show toast notification for error
-          toast({
-            title: "Permission Error",
-            description: errorMessage,
-            variant: "destructive",
-          });
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    if (user?.role && Object.keys(rolePermissions).length === 0) {
+      fetchAllRolePermissions();
     }
-  }, [user, rolePermissions]);
+  }, [user, rolePermissions, fetchAllRolePermissions]);
 
   /**
    * Check if the current user has a specific permission
@@ -112,5 +116,6 @@ export const usePermissions = () => {
     hasAnyPermission,
     getUserPermissions,
     rolePermissions,
+    fetchAllRolePermissions,
   };
 };
