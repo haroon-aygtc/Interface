@@ -1,5 +1,5 @@
-import { API_BASE_URL, API_TIMEOUT } from "@/config/api.config";
-import { getAuthToken } from "@/utils/storage";
+import { API_BASE_URL, API_TIMEOUT, API_ENDPOINTS } from "@/config/api.config";
+import { getAuthToken, getRefreshToken, clearAuthData } from "@/utils/storage";
 
 /**
  * API Error class for handling API errors
@@ -107,13 +107,39 @@ export const apiService = {
 
     try {
       // Race between fetch and timeout
-      const response = await Promise.race([
+      let response = await Promise.race([
         fetch(fullUrl, {
           ...options,
           headers,
         }),
         timeoutPromise(API_TIMEOUT),
       ]);
+
+      // Handle 401 Unauthorized - Try to refresh token
+      if (response.status === 401 && getRefreshToken() && url !== API_ENDPOINTS.REFRESH_TOKEN) {
+        // Import dynamically to avoid circular dependency
+        const { authService } = await import('./auth.service');
+        // Try to refresh the token
+        const refreshSuccess = await authService.refreshToken();
+
+        if (refreshSuccess) {
+          // Retry the request with new token
+          const newToken = getAuthToken();
+          if (newToken) {
+            headers.set("Authorization", `Bearer ${newToken}`);
+          }
+
+          // Retry the original request with the new token
+          response = await fetch(fullUrl, {
+            ...options,
+            headers,
+          });
+        } else {
+          // If refresh failed, clear auth data and throw error
+          clearAuthData();
+          throw new ApiError("Session expired. Please log in again.", 401);
+        }
+      }
 
       // Parse response data
       let data: any;

@@ -4,10 +4,10 @@
 
 // Base URL for API requests to NestJS backend
 export const API_BASE_URL =
-  process.env.API_BASE_URL || "http://localhost:3000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
 
 // Default request timeout in milliseconds
-export const API_TIMEOUT = parseInt(process.env.API_TIMEOUT || "10000", 10);
+export const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT as string || "10000", 10);
 
 // API endpoints for NestJS backend
 export const API_ENDPOINTS = {
@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   LOGIN: "/auth/login",
   REGISTER: "/auth/register",
   LOGOUT: "/auth/logout",
+  REFRESH_TOKEN: "/auth/refresh",
   FORGOT_PASSWORD: "/password-reset/forgot",
   RESET_PASSWORD: "/password-reset/reset",
   PROFILE: "/auth/profile",

@@ -10,6 +10,7 @@ export interface User {
 export interface AuthResponse {
   user: User;
   token: string;
+  refreshToken?: string;
 }
 
 export interface LoginCredentials {
@@ -26,6 +27,10 @@ export interface RegisterCredentials {
 export interface ResetPasswordCredentials {
   token: string;
   password: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
 }
 
 export type Role = "admin" | "user" | "guest";

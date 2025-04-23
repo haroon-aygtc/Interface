@@ -11,7 +11,9 @@ import {
   LoginCredentials,
   RegisterCredentials,
   ResetPasswordCredentials,
+  RefreshTokenRequest,
 } from "@/types/auth";
+import { getRefreshToken, setAuthToken, setRefreshToken } from "@/utils/storage";
 import { apiService } from "./api.service";
 import { API_ENDPOINTS } from "@/config/api.config";
 
@@ -112,6 +114,35 @@ export const authService = {
       return role === "admin";
     } catch (error) {
       console.error("Permission check error:", error);
+      return false;
+    }
+  },
+
+  /**
+   * Refresh the access token using the refresh token
+   */
+  async refreshToken(): Promise<boolean> {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+
+    try {
+      const response = await apiService.post<AuthResponse>(
+        API_ENDPOINTS.REFRESH_TOKEN,
+        { refreshToken } as RefreshTokenRequest
+      );
+
+      // Update tokens in storage
+      if (response.token) {
+        setAuthToken(response.token);
+      }
+      if (response.refreshToken) {
+        setRefreshToken(response.refreshToken);
+      }
+
+      return true;
+    } catch (error) {
+      // Log error but don't expose it to the caller
+      console.error('Token refresh failed:', error);
       return false;
     }
   },

@@ -1,12 +1,24 @@
 import { NestFactory } from "@nestjs/core";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
-import * as helmet from "helmet";
+import fastifyHelmet from "@fastify/helmet";
+import fastifyCors from "@fastify/cors";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Create Fastify instance with appropriate options
+  const fastifyAdapter = new FastifyAdapter({
+    logger: process.env.NODE_ENV !== 'production',
+    trustProxy: true,
+  });
+
+  // Create NestJS app with Fastify adapter
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    fastifyAdapter,
+  );
 
   // Enable validation pipes for all endpoints
   app.useGlobalPipes(
@@ -21,17 +33,23 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  // Security middleware
-  app.use(helmet());
+  // Register Fastify plugins
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: process.env.NODE_ENV === 'production',
+  });
 
   // Enable CORS
-  app.enableCors();
+  await app.register(fastifyCors, {
+    origin: true, // Allow all origins in development
+    credentials: true,
+  });
 
   // Set global prefix for all routes
   app.setGlobalPrefix("api");
 
-  await app.listen(3001);
-  console.log(`Application is running on: http://localhost:3001/api`);
+  // Start the server
+  await app.listen(3001, '0.0.0.0');
+  console.log(`Application is running on: ${await app.getUrl()}/api`);
 }
 
 bootstrap();

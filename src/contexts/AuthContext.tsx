@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useState, useEffect, useCallback, useContext } from "react";
 import {
   User,
   AuthResponse,
@@ -13,10 +13,9 @@ import { API_ENDPOINTS } from "@/config/api.config";
 import {
   setAuthToken,
   getAuthToken,
-  removeAuthToken,
+  setRefreshToken,
   setUserData,
   getUserData,
-  removeUserData,
   clearAuthData,
 } from "@/utils/storage";
 
@@ -29,6 +28,7 @@ export interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  refreshToken: () => Promise<boolean>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (credentials: ResetPasswordCredentials) => Promise<void>;
   checkPermission: (permission: PermissionValue) => boolean;
@@ -44,11 +44,21 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   register: async () => {},
   logout: async () => {},
+  refreshToken: async () => false,
   forgotPassword: async () => {},
   resetPassword: async () => {},
   checkPermission: () => false,
   clearError: () => {},
 });
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -106,6 +116,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Save to local storage
       setAuthToken(response.token);
+      if (response.refreshToken) {
+        setRefreshToken(response.refreshToken);
+      }
       setUserData(response.user);
 
       // Update state
@@ -131,6 +144,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Save to local storage
       setAuthToken(response.token);
+      if (response.refreshToken) {
+        setRefreshToken(response.refreshToken);
+      }
       setUserData(response.user);
 
       // Update state
@@ -166,6 +182,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setPermissionCache({});
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Refresh token function
+  const refreshToken = async (): Promise<boolean> => {
+    try {
+      const success = await authService.refreshToken();
+
+      if (success) {
+        // Update user data
+        const userData = await apiService.get<User>(API_ENDPOINTS.PROFILE);
+        if (userData) {
+          setUserData(userData);
+          setUser(userData);
+        }
+        return true;
+      } else {
+        // If refresh fails, log the user out
+        clearAuthData();
+        setUser(null);
+        setPermissionCache({});
+        return false;
+      }
+    } catch (err) {
+      // If refresh fails, log the user out
+      clearAuthData();
+      setUser(null);
+      setPermissionCache({});
+      return false;
     }
   };
 
@@ -239,6 +284,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         register,
         logout,
+        refreshToken,
         forgotPassword,
         resetPassword,
         checkPermission,

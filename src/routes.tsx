@@ -1,8 +1,9 @@
 import { Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 // Authentication protection removed for testing
 import {
   AIModelConfigWrapper,
@@ -171,6 +172,10 @@ const routes = [
   {
     path: ROUTES.FORGOT_PASSWORD,
     element: <ForgotPassword />,
+  },
+  {
+    path: ROUTES.RESET_PASSWORD,
+    element: <ResetPassword />,
   },
   {
     path: ROUTES.HOME,
