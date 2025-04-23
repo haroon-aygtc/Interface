@@ -11,6 +11,11 @@ import { toast } from "@/components/ui/use-toast";
 import { ArrowRight, Loader2, Mail, Lock } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion } from "framer-motion";
+import {
+  getRememberedEmail,
+  setRememberedEmail,
+  removeRememberedEmail,
+} from "@/utils/storage";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -88,12 +93,27 @@ export default function Login() {
 
   // Load remembered email on component mount
   useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberedEmail");
+    const rememberedEmail = getRememberedEmail();
     if (rememberedEmail) {
       setEmail(rememberedEmail);
       setRememberMe(true);
     }
   }, []);
+
+  // Clear error when user types
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: undefined }));
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (errors.password) {
+      setErrors((prev) => ({ ...prev, password: undefined }));
+    }
+  };
 
   // Animation variants
   const formVariants = {
@@ -153,7 +173,7 @@ export default function Login() {
                 type="email"
                 placeholder="name@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 disabled={isSubmitting}
                 className={`${theme === "dark" ? "bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50" : "bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50"} ${errors.email ? "border-destructive" : ""} pl-10`}
                 prefix={<Mail className="h-4 w-4 text-[#D8A23B]" />}
@@ -192,7 +212,7 @@ export default function Login() {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 disabled={isSubmitting}
                 className={`${theme === "dark" ? "bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50" : "bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50"} ${errors.password ? "border-destructive" : ""} pl-10`}
                 prefix={<Lock className="h-4 w-4 text-[#D8A23B]" />}
@@ -215,7 +235,7 @@ export default function Login() {
           <Checkbox
             id="remember"
             checked={rememberMe}
-            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+            onCheckedChange={(checked) => setRememberMe(!!checked)}
             disabled={isSubmitting}
             className="border-[#D8A23B]/30 data-[state=checked]:bg-[#D8A23B] data-[state=checked]:border-[#D8A23B]"
           />

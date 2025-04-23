@@ -126,11 +126,9 @@ export const apiService = {
 
       // Handle error responses
       if (!response.ok) {
-        throw new ApiError(
-          data.message || `API error: ${response.status}`,
-          response.status,
-          data,
-        );
+        const errorMessage =
+          data.message || data.error || `API error: ${response.status}`;
+        throw new ApiError(errorMessage, response.status, data);
       }
 
       return data as T;
@@ -141,6 +139,10 @@ export const apiService = {
       }
 
       // Handle network errors
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        throw new ApiError("Network error: Unable to connect to server", 0);
+      }
+
       throw new ApiError((error as Error).message || "Network error", 0);
     }
   },

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { userService } from "@/services/user.service";
+import { apiService } from "@/services/api.service";
+import { API_ENDPOINTS } from "@/config/api.config";
 import { User } from "@/types/auth";
 import { useAuth } from "./useAuth";
 
@@ -19,10 +20,12 @@ export const useUser = (userId?: string) => {
     setError(null);
 
     try {
-      const userData = await userService.getUserById(id);
+      const userData = await apiService.get<User>(API_ENDPOINTS.USER(id));
       setUser(userData);
+      return userData;
     } catch (err: any) {
       setError(err.message || "Failed to fetch user");
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -34,10 +37,12 @@ export const useUser = (userId?: string) => {
     setError(null);
 
     try {
-      const usersData = await userService.getUsers();
+      const usersData = await apiService.get<User[]>(API_ENDPOINTS.USERS);
       setUsers(usersData);
+      return usersData;
     } catch (err: any) {
       setError(err.message || "Failed to fetch users");
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -50,7 +55,10 @@ export const useUser = (userId?: string) => {
       setError(null);
 
       try {
-        const updatedUser = await userService.updateUser(id, userData);
+        const updatedUser = await apiService.patch<User>(
+          API_ENDPOINTS.USER(id),
+          userData,
+        );
         setUser(updatedUser);
         return updatedUser;
       } catch (err: any) {
@@ -70,7 +78,10 @@ export const useUser = (userId?: string) => {
       setError(null);
 
       try {
-        const newUser = await userService.createUser(userData);
+        const newUser = await apiService.post<User>(
+          API_ENDPOINTS.USERS,
+          userData,
+        );
         setUsers((prev) => [...prev, newUser]);
         return newUser;
       } catch (err: any) {
@@ -90,7 +101,7 @@ export const useUser = (userId?: string) => {
       setError(null);
 
       try {
-        await userService.deleteUser(id);
+        await apiService.delete(API_ENDPOINTS.USER(id));
         setUsers((prev) => prev.filter((u) => u.id !== id));
         if (user?.id === id) {
           setUser(null);
@@ -108,7 +119,9 @@ export const useUser = (userId?: string) => {
   // Fetch user data on mount if userId is provided
   useEffect(() => {
     if (userId) {
-      fetchUser(userId);
+      fetchUser(userId).catch((err) => {
+        console.error("Error fetching user:", err);
+      });
     }
   }, [userId, fetchUser]);
 

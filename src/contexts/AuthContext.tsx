@@ -8,6 +8,8 @@ import {
   PermissionValue,
 } from "@/types/auth";
 import { authService } from "@/services/auth.service";
+import { apiService } from "@/services/api.service";
+import { API_ENDPOINTS } from "@/config/api.config";
 import {
   setAuthToken,
   getAuthToken,
@@ -66,13 +68,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const cachedUser = getUserData();
 
         if (token && cachedUser) {
-          // Validate token with the server
-          const currentUser = await authService.getCurrentUser(token);
-
-          if (currentUser) {
-            setUser(currentUser);
-          } else {
-            // Token is invalid, clear storage
+          try {
+            // Validate token with the server
+            const userData = await apiService.get<User>(API_ENDPOINTS.PROFILE);
+            if (userData) {
+              setUser(userData);
+            } else {
+              // Token is invalid, clear storage
+              clearAuthData();
+            }
+          } catch (err) {
+            console.error("Failed to validate token:", err);
             clearAuthData();
           }
         }
@@ -93,14 +99,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      const { user, token } = await authService.login(credentials);
+      const response = await apiService.post<AuthResponse>(
+        API_ENDPOINTS.LOGIN,
+        credentials,
+      );
 
       // Save to local storage
-      setAuthToken(token);
-      setUserData(user);
+      setAuthToken(response.token);
+      setUserData(response.user);
 
       // Update state
-      setUser(user);
+      setUser(response.user);
     } catch (err: any) {
       setError(err.message || "Failed to login");
       throw err;
@@ -115,14 +124,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      const { user, token } = await authService.register(credentials);
+      const response = await apiService.post<AuthResponse>(
+        API_ENDPOINTS.REGISTER,
+        credentials,
+      );
 
       // Save to local storage
-      setAuthToken(token);
-      setUserData(user);
+      setAuthToken(response.token);
+      setUserData(response.user);
 
       // Update state
-      setUser(user);
+      setUser(response.user);
     } catch (err: any) {
       setError(err.message || "Failed to register");
       throw err;
@@ -137,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       if (user) {
-        await authService.logout(user.id);
+        await apiService.post(API_ENDPOINTS.LOGOUT);
       }
 
       // Clear local storage
@@ -148,6 +160,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setPermissionCache({});
     } catch (err: any) {
       setError(err.message || "Failed to logout");
+      // Still clear local data even if server logout fails
+      clearAuthData();
+      setUser(null);
+      setPermissionCache({});
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      await authService.forgotPassword(email);
+      await apiService.post(API_ENDPOINTS.FORGOT_PASSWORD, { email });
     } catch (err: any) {
       setError(err.message || "Failed to process password reset");
       throw err;
@@ -176,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      await authService.resetPassword(credentials);
+      await apiService.post(API_ENDPOINTS.RESET_PASSWORD, credentials);
     } catch (err: any) {
       setError(err.message || "Failed to reset password");
       throw err;
@@ -202,22 +218,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return true;
       }
 
-      // For other roles, check with the service
-      // This would normally be an async call, but we're making it sync for simplicity
-      // In a real app, you might want to use a more sophisticated caching strategy
-      authService
-        .hasPermission(user.role, permission)
-        .then((hasPermission) => {
-          setPermissionCache((prev) => ({
-            ...prev,
-            [cacheKey]: hasPermission,
-          }));
-        })
-        .catch((err) => {
-          console.error("Failed to check permission:", err);
-        });
-
-      // Default to false until we know for sure
+      // For other roles, we'll use the usePermissions hook elsewhere
+      // This is a simplified implementation that defaults to false
+      // until the permissions are loaded by the usePermissions hook
       return false;
     },
     [user, permissionCache],

@@ -15,13 +15,5 @@ export const MYSQL_CONFIG = {
   queueLimit: 0,
 };
 
-// Database mode - 'mock' for JSON-based, 'mysql' for MySQL
-export const DB_MODE = process.env.DB_MODE || "mock";
-
-// Mock database file paths
-export const MOCK_DB_PATHS = {
-  USERS: "db.json",
-  SESSIONS: "db.json",
-  PASSWORD_RESETS: "db.json",
-  PERMISSIONS: "db.json",
-};
+// Set database mode to MySQL
+export const DB_MODE = process.env.DB_MODE || "mysql";

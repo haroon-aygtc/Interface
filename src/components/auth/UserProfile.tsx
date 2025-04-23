@@ -38,6 +38,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     email: "",
     password: "",
   });
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    password: "",
+  });
 
   // Initialize form data when user data is loaded
   React.useEffect(() => {
@@ -50,14 +54,47 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     }
   }, [user]);
 
+  const validateForm = () => {
+    const errors = {
+      name: "",
+      password: "",
+    };
+    let isValid = true;
+
+    if (!formData.name.trim()) {
+      errors.name = "Name is required";
+      isValid = false;
+    }
+
+    if (formData.password && formData.password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when user types
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!validateForm()) {
+      return;
+    }
 
     setIsSaving(true);
 
@@ -135,9 +172,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="pl-10"
+                  className={`pl-10 ${formErrors.name ? "border-destructive" : ""}`}
                   prefix={<User className="h-4 w-4 text-[#D8A23B]" />}
                 />
+                {formErrors.name && (
+                  <p className="text-sm text-destructive mt-1">
+                    {formErrors.name}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -165,9 +207,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Leave blank to keep current password"
-                  className="pl-10"
+                  className={`pl-10 ${formErrors.password ? "border-destructive" : ""}`}
                   prefix={<Lock className="h-4 w-4 text-[#D8A23B]" />}
                 />
+                {formErrors.password && (
+                  <p className="text-sm text-destructive mt-1">
+                    {formErrors.password}
+                  </p>
+                )}
               </div>
             </div>
 
