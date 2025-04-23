@@ -1,48 +1,35 @@
 /**
- * Permission repository - handles database operations for permissions
+ * This file is deprecated and should not be used.
+ * All permission operations should be performed in the server repositories.
+ * Frontend code should use the API service to communicate with the backend.
  */
 
 import { Role, RoleWithPermissions } from "@/types/auth";
-import * as mysql from "@/utils/mysql";
 
-/**
- * Get permissions for a role
- */
+// These functions are kept as stubs to prevent breaking changes
+// but they should be replaced with API calls in the frontend code
+
 export async function getRolePermissions(role: Role): Promise<string[]> {
-  const results = await mysql.query<any[]>(
-    "SELECT permissions FROM permissions WHERE role = ?",
-    [role],
+  console.warn(
+    "Deprecated: Use API service instead of direct repository access",
   );
-
-  if (results.length === 0) {
-    return [];
-  }
-
-  // Parse the JSON array of permissions
-  return JSON.parse(results[0].permissions);
+  return [];
 }
 
-/**
- * Check if a role has a specific permission
- */
 export async function hasPermission(
   role: Role,
   permission: string,
 ): Promise<boolean> {
-  const permissions = await getRolePermissions(role);
-  return permissions.includes(permission);
+  console.warn(
+    "Deprecated: Use API service instead of direct repository access",
+  );
+  // Default to true for admin role to prevent breaking functionality
+  return role === "admin";
 }
 
-/**
- * Get all role permissions
- */
 export async function getAllRolePermissions(): Promise<RoleWithPermissions[]> {
-  const results = await mysql.query<any[]>(
-    "SELECT role, permissions FROM permissions",
+  console.warn(
+    "Deprecated: Use API service instead of direct repository access",
   );
-
-  return results.map((row) => ({
-    role: row.role as Role,
-    permissions: JSON.parse(row.permissions),
-  }));
+  return [];
 }

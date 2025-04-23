@@ -1,9 +1,8 @@
 /**
- * Session repository - handles database operations for sessions
+ * This file is deprecated and should not be used.
+ * All session operations should be performed in the server repositories.
+ * Frontend code should use the API service to communicate with the backend.
  */
-
-import { v4 as uuidv4 } from "uuid";
-import * as mysql from "@/utils/mysql";
 
 // Session interface
 interface Session {
@@ -14,61 +13,35 @@ interface Session {
   createdAt: string;
 }
 
-/**
- * Create a new session
- */
+// These functions are kept as stubs to prevent breaking changes
+// but they should be replaced with API calls in the frontend code
+
 export async function createSession(userId: string): Promise<Session> {
-  const now = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
-  const token = `token-${userId}-${Date.now()}-${uuidv4()}`;
-  const id = `session-${uuidv4()}`;
-
-  const session: Session = {
-    id,
-    userId,
-    token,
-    expiresAt,
-    createdAt: now,
-  };
-
-  await mysql.query(
-    "INSERT INTO sessions (id, userId, token, expiresAt, createdAt) VALUES (?, ?, ?, ?, ?)",
-    [
-      session.id,
-      session.userId,
-      session.token,
-      session.expiresAt,
-      session.createdAt,
-    ],
+  console.warn(
+    "Deprecated: Use API service instead of direct repository access",
   );
-
-  return session;
+  throw new Error("This function is deprecated. Use API service instead.");
 }
 
-/**
- * Find a session by token
- */
 export async function findSessionByToken(
   token: string,
 ): Promise<Session | null> {
-  const sessions = await mysql.query<Session[]>(
-    "SELECT * FROM sessions WHERE token = ? AND expiresAt > NOW()",
-    [token],
+  console.warn(
+    "Deprecated: Use API service instead of direct repository access",
   );
-
-  return sessions.length > 0 ? sessions[0] : null;
+  return null;
 }
 
-/**
- * Delete sessions for a user
- */
 export async function deleteUserSessions(userId: string): Promise<void> {
-  await mysql.query("DELETE FROM sessions WHERE userId = ?", [userId]);
+  console.warn(
+    "Deprecated: Use API service instead of direct repository access",
+  );
+  throw new Error("This function is deprecated. Use API service instead.");
 }
 
-/**
- * Delete a session by token
- */
 export async function deleteSessionByToken(token: string): Promise<void> {
-  await mysql.query("DELETE FROM sessions WHERE token = ?", [token]);
+  console.warn(
+    "Deprecated: Use API service instead of direct repository access",
+  );
+  throw new Error("This function is deprecated. Use API service instead.");
 }
