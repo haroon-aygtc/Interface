@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { ArrowRight, Loader2, CheckCircle } from "lucide-react";
+import { ArrowRight, Loader2, CheckCircle, Mail } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function ForgotPassword() {
@@ -32,7 +32,14 @@ export default function ForgotPassword() {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -41,20 +48,26 @@ export default function ForgotPassword() {
 
     setIsSubmitting(true);
 
-    // Call the forgotPassword function from AuthContext
-    forgotPassword(email);
+    try {
+      // Call the forgotPassword function from AuthContext
+      await forgotPassword(email);
 
-    // Show success toast and update UI
-    setTimeout(() => {
       setIsSubmitted(true);
-      setIsSubmitting(false);
 
       toast({
         title: "Reset Email Sent",
         description: "Check your email for a link to reset your password.",
         variant: "default",
       });
-    }, 800);
+    } catch (err: any) {
+      toast({
+        title: "Request Failed",
+        description: err.message || "Failed to send reset email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -64,12 +77,21 @@ export default function ForgotPassword() {
     >
       {isSubmitted ? (
         <div className="space-y-6">
-          <div className={`${theme === 'dark' ? 'bg-[#D8A23B]/10' : 'bg-[#D8A23B]/5'} p-6 rounded-lg text-center`}>
+          <div
+            className={`${theme === "dark" ? "bg-[#D8A23B]/10" : "bg-[#D8A23B]/5"} p-6 rounded-lg text-center`}
+          >
             <CheckCircle className="h-12 w-12 mx-auto text-[#D8A23B] mb-4" />
-            <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-[#09090B]'}`}>Check your email</h3>
-            <p className={`${theme === 'dark' ? 'text-white/70' : 'text-[#09090B]/70'}`}>
+            <h3
+              className={`text-xl font-bold mb-2 ${theme === "dark" ? "text-white" : "text-[#09090B]"}`}
+            >
+              Check your email
+            </h3>
+            <p
+              className={`${theme === "dark" ? "text-white/70" : "text-[#09090B]/70"}`}
+            >
               We've sent a password reset link to <strong>{email}</strong>.
-              Please check your inbox and follow the instructions to reset your password.
+              Please check your inbox and follow the instructions to reset your
+              password.
             </p>
           </div>
 
@@ -82,7 +104,9 @@ export default function ForgotPassword() {
               Send Again
             </Button>
 
-            <div className={`text-center text-sm ${theme === 'dark' ? 'text-white/80' : 'text-[#09090B]/80'}`}>
+            <div
+              className={`text-center text-sm ${theme === "dark" ? "text-white/80" : "text-[#09090B]/80"}`}
+            >
               Remember your password?{" "}
               <Link
                 to={ROUTES.LOGIN}
@@ -96,19 +120,23 @@ export default function ForgotPassword() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email" className={`${theme === 'dark' ? 'text-white' : 'text-[#09090B]'}`}>Email</Label>
+            <Label
+              htmlFor="email"
+              className={`${theme === "dark" ? "text-white" : "text-[#09090B]"}`}
+            >
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
               placeholder="name@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               disabled={isSubmitting}
-              className={`${theme === 'dark' ? 'bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50' : 'bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50'} ${error ? "border-destructive" : ""}`}
+              className={`${theme === "dark" ? "bg-[#09090B]/30 text-white border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50" : "bg-white text-[#09090B] border-[#D8A23B]/30 focus:border-[#D8A23B] focus:ring-[#D8A23B]/50"} ${error ? "border-destructive" : ""} pl-10`}
+              prefix={<Mail className="h-4 w-4 text-[#D8A23B]" />}
             />
-            {error && (
-              <p className="text-sm text-[#D8A23B]">{error}</p>
-            )}
+            {error && <p className="text-sm text-[#D8A23B]">{error}</p>}
           </div>
 
           <Button
@@ -129,7 +157,9 @@ export default function ForgotPassword() {
             )}
           </Button>
 
-          <div className={`text-center text-sm ${theme === 'dark' ? 'text-white/80' : 'text-[#09090B]/80'}`}>
+          <div
+            className={`text-center text-sm ${theme === "dark" ? "text-white/80" : "text-[#09090B]/80"}`}
+          >
             Remember your password?{" "}
             <Link
               to={ROUTES.LOGIN}

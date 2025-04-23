@@ -1,7 +1,7 @@
 import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-// Tempo dependencies removed
+import { tempo } from "tempo-devtools/dist/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,7 +12,7 @@ export default defineConfig({
   optimizeDeps: {
     entries: ["src/main.tsx"],
   },
-  plugins: [react()],
+  plugins: [react(), tempo()],
   resolve: {
     preserveSymlinks: true,
     alias: {
@@ -25,10 +25,11 @@ export default defineConfig({
     strictPort: false,
     cors: true,
     hmr: {
-      clientPort: 3000,
-      host: "localhost",
+      // Remove explicit clientPort and host to let Vite auto-detect
       protocol: "ws",
       timeout: 120000,
     },
+    // Allow Tempo to access the dev server
+    allowedHosts: process.env.TEMPO === "true" ? true : undefined,
   },
 });

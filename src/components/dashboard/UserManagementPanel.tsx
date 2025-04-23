@@ -1,24 +1,10 @@
-import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect } from "react";
+import { useUser } from "@/hooks/useUser";
+import { usePermissions } from "@/hooks/usePermissions";
+import { User, Role } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,769 +13,489 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  UserPlus,
-  Users,
-  Shield,
-  Key,
-  Clock,
-  LogOut,
-  Lock,
-  Unlock,
-  MoreHorizontal,
-  Mail,
-  User,
-  UserCog,
-  Building,
-  Activity,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "@/components/ui/use-toast";
+import { UserProfile } from "@/components/auth/UserProfile";
+import { PermissionGate } from "@/components/auth/PermissionGate";
+import { PERMISSIONS } from "@/types/auth";
+import { Loader2, Plus, Trash2, Edit, Search, UserPlus } from "lucide-react";
 
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "editor" | "viewer" | "guest";
-  status: "active" | "inactive" | "pending";
-  organization: string;
-  lastLogin: Date | null;
-  createdAt: Date;
-}
+const UserManagementPanel: React.FC = () => {
+  const { users, loading, error, fetchUsers, createUser, deleteUser } =
+    useUser();
+  const { hasPermission } = usePermissions();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "user" as Role,
+  });
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-interface RoleData {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  userCount: number;
-}
+  // Fetch users on component mount
+  useEffect(() => {
+    fetchUsers().catch((err) => {
+      console.error("Error fetching users:", err);
+      toast({
+        title: "Error",
+        description: "Failed to load users. Please try again later.",
+        variant: "destructive",
+      });
+    });
+  }, [fetchUsers]);
 
-interface UserManagementPanelProps {
-  defaultTab?: string;
-}
+  // Filter users based on search term
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-const UserManagementPanel: React.FC<UserManagementPanelProps> = ({ defaultTab = "users" }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
-  const [selectedRole, setSelectedRole] = useState<RoleData | null>(null);
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewUser((prev) => ({ ...prev, [name]: value }));
 
-  // Mock data for users
-  const [users, setUsers] = useState<UserData[]>([
-    {
-      id: "1",
-      name: "Admin User",
-      email: "admin@example.com",
-      role: "admin",
-      status: "active",
-      organization: "Example Corp",
-      lastLogin: new Date(2023, 5, 17),
-      createdAt: new Date(2022, 1, 15),
-    },
-    {
-      id: "2",
-      name: "John Editor",
-      email: "john@example.com",
-      role: "editor",
-      status: "active",
-      organization: "Example Corp",
-      lastLogin: new Date(2023, 5, 16),
-      createdAt: new Date(2022, 3, 10),
-    },
-    {
-      id: "3",
-      name: "Sarah Viewer",
-      email: "sarah@example.com",
-      role: "viewer",
-      status: "active",
-      organization: "Partner Inc",
-      lastLogin: new Date(2023, 5, 10),
-      createdAt: new Date(2022, 6, 22),
-    },
-    {
-      id: "4",
-      name: "Michael Guest",
-      email: "michael@example.com",
-      role: "guest",
-      status: "pending",
-      organization: "Client LLC",
-      lastLogin: null,
-      createdAt: new Date(2023, 5, 15),
-    },
-    {
-      id: "5",
-      name: "Emily Inactive",
-      email: "emily@example.com",
-      role: "editor",
-      status: "inactive",
-      organization: "Example Corp",
-      lastLogin: new Date(2023, 2, 5),
-      createdAt: new Date(2022, 4, 18),
-    },
-  ]);
+    // Clear error when user types
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
 
-  // Mock data for roles
-  const [roles, setRoles] = useState<RoleData[]>([
-    {
-      id: "admin",
-      name: "Administrator",
-      description: "Full access to all features and settings",
-      permissions: [
-        "manage_users",
-        "manage_roles",
-        "manage_settings",
-        "manage_content",
-        "view_analytics",
-        "export_data",
-      ],
-      userCount: 1,
-    },
-    {
-      id: "editor",
-      name: "Editor",
-      description: "Can edit content and view analytics",
-      permissions: ["manage_content", "view_analytics", "export_data"],
-      userCount: 2,
-    },
-    {
-      id: "viewer",
-      name: "Viewer",
-      description: "Read-only access to content and analytics",
-      permissions: ["view_content", "view_analytics"],
-      userCount: 1,
-    },
-    {
-      id: "guest",
-      name: "Guest",
-      description: "Limited access to specific content only",
-      permissions: ["view_content"],
-      userCount: 1,
-    },
-  ]);
+  // Handle role selection
+  const handleRoleChange = (value: string) => {
+    setNewUser((prev) => ({ ...prev, role: value as Role }));
+  };
 
-  const handleEditUser = (user: UserData) => {
+  // Validate form
+  const validateForm = () => {
+    const errors = {
+      name: "",
+      email: "",
+      password: "",
+    };
+    let isValid = true;
+
+    if (!newUser.name.trim()) {
+      errors.name = "Name is required";
+      isValid = false;
+    }
+
+    if (!newUser.email.trim()) {
+      errors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(newUser.email)) {
+      errors.email = "Email is invalid";
+      isValid = false;
+    }
+
+    if (!newUser.password.trim()) {
+      errors.password = "Password is required";
+      isValid = false;
+    } else if (newUser.password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
+  // Handle user creation
+  const handleCreateUser = async () => {
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await createUser({
+        name: newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role,
+      });
+
+      toast({
+        title: "Success",
+        description: "User created successfully",
+        variant: "default",
+      });
+
+      // Reset form and close dialog
+      setNewUser({
+        name: "",
+        email: "",
+        password: "",
+        role: "user",
+      });
+      setIsCreateDialogOpen(false);
+
+      // Refresh user list
+      fetchUsers();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to create user",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle user deletion
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await deleteUser(selectedUser.id);
+
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+        variant: "default",
+      });
+
+      // Close dialog and refresh user list
+      setIsDeleteDialogOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to delete user",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // View user details
+  const handleViewUser = (user: User) => {
     setSelectedUser(user);
-    setActiveTab("edit-user");
+    setIsViewDialogOpen(true);
   };
 
-  const handleCreateNewUser = () => {
-    setSelectedUser(null);
-    setActiveTab("edit-user");
+  // Confirm user deletion
+  const confirmDeleteUser = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setUsers(users.filter((user) => user.id !== userId));
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-[#D8A23B]" />
+      </div>
+    );
+  }
 
-  const handleEditRole = (role: RoleData) => {
-    setSelectedRole(role);
-    setActiveTab("edit-role");
-  };
-
-  const handleCreateNewRole = () => {
-    setSelectedRole(null);
-    setActiveTab("edit-role");
-  };
-
-  const getRoleBadge = (role: UserData["role"]) => {
-    switch (role) {
-      case "admin":
-        return <Badge className="bg-purple-500">Admin</Badge>;
-      case "editor":
-        return <Badge className="bg-blue-500">Editor</Badge>;
-      case "viewer":
-        return <Badge className="bg-green-500">Viewer</Badge>;
-      case "guest":
-        return <Badge className="bg-gray-500">Guest</Badge>;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusBadge = (status: UserData["status"]) => {
-    switch (status) {
-      case "active":
-        return (
-          <Badge variant="outline" className="text-green-500 border-green-500">
-            Active
-          </Badge>
-        );
-      case "inactive":
-        return (
-          <Badge variant="outline" className="text-gray-500 border-gray-500">
-            Inactive
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge variant="outline" className="text-amber-500 border-amber-500">
-            Pending
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="w-full h-full bg-background p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <Button onClick={handleCreateNewUser}>
-          <UserPlus className="mr-2 h-4 w-4" /> Add User
+  if (error) {
+    return (
+      <div className="text-center p-6 text-destructive">
+        <p>Error loading users: {error}</p>
+        <Button onClick={() => fetchUsers()} variant="outline" className="mt-4">
+          Try Again
         </Button>
       </div>
+    );
+  }
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
-          <TabsTrigger value="edit-user">
-            {selectedUser ? "Edit User" : "Add User"}
-          </TabsTrigger>
-          <TabsTrigger value="edit-role">
-            {selectedRole ? "Edit Role" : "Add Role"}
-          </TabsTrigger>
-        </TabsList>
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle>User Management</CardTitle>
+            <CardDescription>
+              Manage users, roles, and permissions
+            </CardDescription>
+          </div>
+          <PermissionGate permissions={PERMISSIONS.MANAGE_USERS}>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="bg-[#D8A23B] text-[#09090B] hover:bg-[#D8A23B]/90"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
+          </PermissionGate>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search users..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
 
-        <TabsContent value="users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>
-                Manage users and their access to the system
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <Input
-                    placeholder="Search users..."
-                    className="max-w-sm mr-2"
-                    prefix={
-                      <Search className="h-4 w-4 text-muted-foreground" />
-                    }
-                  />
-                  <Select defaultValue="all-roles">
-                    <SelectTrigger className="w-[180px] mr-2">
-                      <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-roles">All Roles</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                      <SelectItem value="guest">Guest</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select defaultValue="all-status">
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-status">All Statuses</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button variant="outline">
-                  <Plus className="mr-2 h-4 w-4" /> Bulk Import
-                </Button>
-              </div>
-
-              <Table>
-                <TableHeader>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Organization</TableHead>
-                    <TableHead>Last Login</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableCell
+                      colSpan={4}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      No users found
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
+                ) : (
+                  filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell>{getStatusBadge(user.status)}</TableCell>
-                      <TableCell>{user.organization}</TableCell>
-                      <TableCell>
-                        {user.lastLogin
-                          ? user.lastLogin.toLocaleDateString()
-                          : "Never"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
+                      <TableCell className="capitalize">{user.role}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => handleEditUser(user)}
+                            onClick={() => handleViewUser(user)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          {user.status === "active" ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-amber-500 hover:text-amber-700"
-                            >
-                              <Lock className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-green-500 hover:text-green-700"
-                            >
-                              <Unlock className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => handleDeleteUser(user.id)}
+                          <PermissionGate
+                            permissions={PERMISSIONS.MANAGE_USERS}
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => confirmDeleteUser(user)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGate>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredUsers.length} of {users.length} users
+          </div>
+        </CardFooter>
+      </Card>
 
-        <TabsContent value="roles" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Roles & Permissions</CardTitle>
-              <CardDescription>
-                Manage roles and their associated permissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between mb-4">
-                <Input
-                  placeholder="Search roles..."
-                  className="max-w-sm"
-                  prefix={<Search className="h-4 w-4 text-muted-foreground" />}
-                />
-                <Button onClick={handleCreateNewRole}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Role
-                </Button>
-              </div>
+      {/* Create User Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Add a new user to the system with specific role and permissions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                name="name"
+                value={newUser.name}
+                onChange={handleInputChange}
+                className={formErrors.name ? "border-destructive" : ""}
+              />
+              {formErrors.name && (
+                <p className="text-sm text-destructive">{formErrors.name}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={newUser.email}
+                onChange={handleInputChange}
+                className={formErrors.email ? "border-destructive" : ""}
+              />
+              {formErrors.email && (
+                <p className="text-sm text-destructive">{formErrors.email}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={newUser.password}
+                onChange={handleInputChange}
+                className={formErrors.password ? "border-destructive" : ""}
+              />
+              {formErrors.password && (
+                <p className="text-sm text-destructive">
+                  {formErrors.password}
+                </p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={newUser.role} onValueChange={handleRoleChange}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="guest">Guest</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateUser}
+              disabled={isSubmitting}
+              className="bg-[#D8A23B] text-[#09090B] hover:bg-[#D8A23B]/90"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create User"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Role Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Permissions</TableHead>
-                    <TableHead>Users</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {roles.map((role) => (
-                    <TableRow key={role.id}>
-                      <TableCell className="font-medium">{role.name}</TableCell>
-                      <TableCell>{role.description}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {role.permissions.slice(0, 2).map((permission) => (
-                            <Badge
-                              key={permission}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {permission.replace(/_/g, " ")}
-                            </Badge>
-                          ))}
-                          {role.permissions.length > 2 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{role.permissions.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{role.userCount} users</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditRole(role)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* View/Edit User Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>
+              View and edit user information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && <UserProfile userId={selectedUser.id} />}
+        </DialogContent>
+      </Dialog>
 
-        <TabsContent value="edit-user">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {selectedUser ? "Edit User" : "Create New User"}
-              </CardTitle>
-              <CardDescription>
-                {selectedUser
-                  ? "Update user details and permissions"
-                  : "Add a new user to the system"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="user-name">Full Name</Label>
-                  <Input
-                    id="user-name"
-                    placeholder="John Doe"
-                    defaultValue={selectedUser?.name || ""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="user-email">Email Address</Label>
-                  <Input
-                    id="user-email"
-                    type="email"
-                    placeholder="john@example.com"
-                    defaultValue={selectedUser?.email || ""}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="user-role">Role</Label>
-                  <Select defaultValue={selectedUser?.role || "viewer"}>
-                    <SelectTrigger id="user-role">
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Administrator</SelectItem>
-                      <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                      <SelectItem value="guest">Guest</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="user-organization">Organization</Label>
-                  <Input
-                    id="user-organization"
-                    placeholder="Company Name"
-                    defaultValue={selectedUser?.organization || ""}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="user-password">Password</Label>
-                  <Input
-                    id="user-password"
-                    type="password"
-                    placeholder={selectedUser ? "••••••••" : "Enter password"}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="user-confirm-password">
-                    Confirm Password
-                  </Label>
-                  <Input
-                    id="user-confirm-password"
-                    type="password"
-                    placeholder={selectedUser ? "••••••••" : "Confirm password"}
-                  />
-                </div>
-              </div>
-
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this user? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {selectedUser && (
               <div className="space-y-2">
-                <Label>Status</Label>
-                <div className="flex space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="status-active"
-                      name="status"
-                      value="active"
-                      aria-label="Active status"
-                      placeholder="Active"
-                      defaultChecked={
-                        selectedUser?.status === "active" || !selectedUser
-                      }
-                      className="h-4 w-4 text-blue-600"
-                    />
-                    <Label htmlFor="status-active" className="cursor-pointer">
-                      Active
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="status-inactive"
-                      name="status"
-                      value="inactive"
-                      aria-label="Inactive status"
-                      placeholder="Inactive"
-                      defaultChecked={selectedUser?.status === "inactive"}
-                      className="h-4 w-4 text-blue-600"
-                    />
-                    <Label htmlFor="status-inactive" className="cursor-pointer">
-                      Inactive
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="status-pending"
-                      name="status"
-                      value="pending"
-                      aria-label="Pending status"
-                      placeholder="Pending"
-                      defaultChecked={selectedUser?.status === "pending"}
-                      className="h-4 w-4 text-blue-600"
-                    />
-                    <Label htmlFor="status-pending" className="cursor-pointer">
-                      Pending
-                    </Label>
-                  </div>
-                </div>
+                <p>
+                  <span className="font-medium">Name:</span> {selectedUser.name}
+                </p>
+                <p>
+                  <span className="font-medium">Email:</span>{" "}
+                  {selectedUser.email}
+                </p>
+                <p>
+                  <span className="font-medium">Role:</span>{" "}
+                  <span className="capitalize">{selectedUser.role}</span>
+                </p>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="send-welcome-email">Send Welcome Email</Label>
-                  <Switch
-                    id="send-welcome-email"
-                    defaultChecked={!selectedUser}
-                  />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setActiveTab("users")}>
-                Cancel
-              </Button>
-              <Button>{selectedUser ? "Update User" : "Create User"}</Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="edit-role">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {selectedRole ? "Edit Role" : "Create New Role"}
-              </CardTitle>
-              <CardDescription>
-                {selectedRole
-                  ? "Update role details and permissions"
-                  : "Define a new role with specific permissions"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="role-name">Role Name</Label>
-                <Input
-                  id="role-name"
-                  placeholder="e.g., Content Manager"
-                  defaultValue={selectedRole?.name || ""}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="role-description">Description</Label>
-                <Input
-                  id="role-description"
-                  placeholder="Brief description of this role"
-                  defaultValue={selectedRole?.description || ""}
-                />
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Permissions</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-4">
-                    <h4 className="font-medium">User Management</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          aria-label="Manage Users"
-                          type="checkbox"
-                          id="perm-manage-users"
-                          defaultChecked={selectedRole?.permissions.includes(
-                            "manage_users",
-                          )}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <Label
-                          htmlFor="perm-manage-users"
-                          className="cursor-pointer"
-                        >
-                          Manage Users
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          aria-label="Manage Roles"
-                          type="checkbox"
-                          id="perm-manage-roles"
-                          defaultChecked={selectedRole?.permissions.includes(
-                            "manage_roles",
-                          )}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <Label
-                          htmlFor="perm-manage-roles"
-                          className="cursor-pointer"
-                        >
-                          Manage Roles
-                        </Label>
-                      </div>
-                    </div>
-
-                    <h4 className="font-medium">Content</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          aria-label="View Content"
-                          type="checkbox"
-                          id="perm-view-content"
-                          defaultChecked={selectedRole?.permissions.includes(
-                            "view_content",
-                          )}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <Label
-                          htmlFor="perm-view-content"
-                          className="cursor-pointer"
-                        >
-                          View Content
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          aria-label="Manage Content"
-                          type="checkbox"
-                          id="perm-manage-content"
-                          defaultChecked={selectedRole?.permissions.includes(
-                            "manage_content",
-                          )}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <Label
-                          htmlFor="perm-manage-content"
-                          className="cursor-pointer"
-                        >
-                          Manage Content
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Analytics</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          aria-label="View Analytics"
-                          type="checkbox"
-                          id="perm-view-analytics"
-                          defaultChecked={selectedRole?.permissions.includes(
-                            "view_analytics",
-                          )}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <Label
-                          htmlFor="perm-view-analytics"
-                          className="cursor-pointer"
-                        >
-                          View Analytics
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          aria-label="Export Data"
-                          type="checkbox"
-                          id="perm-export-data"
-                          defaultChecked={selectedRole?.permissions.includes(
-                            "export_data",
-                          )}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <Label
-                          htmlFor="perm-export-data"
-                          className="cursor-pointer"
-                        >
-                          Export Data
-                        </Label>
-                      </div>
-                    </div>
-
-                    <h4 className="font-medium">System</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          aria-label="Manage Settings"
-                          type="checkbox"
-                          id="perm-manage-settings"
-                          defaultChecked={selectedRole?.permissions.includes(
-                            "manage_settings",
-                          )}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <Label
-                          htmlFor="perm-manage-settings"
-                          className="cursor-pointer"
-                        >
-                          Manage Settings
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setActiveTab("roles")}>
-                Cancel
-              </Button>
-              <Button>{selectedRole ? "Update Role" : "Create Role"}</Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteUser}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete User"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

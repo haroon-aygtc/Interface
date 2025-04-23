@@ -68,11 +68,13 @@ function DashboardHeader({
     },
   ];
 
-  const unreadCount = notifications.filter((notification) => !notification.read).length;
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read,
+  ).length;
 
   return (
     <header className="sticky top-0 z-30 h-20 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-20 items-center justify-between px-6 max-w-7xl mx-auto w-full">
+      <div className="flex h-20 items-center justify-between px-4 sm:px-6 max-w-full mx-auto w-full">
         {/* Left Section - Logo and Sidebar Toggle */}
         <div className="flex items-center gap-2">
           <Button
@@ -82,7 +84,11 @@ function DashboardHeader({
             className="md:hidden"
             aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
           >
-            {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isSidebarOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
 
           {/* Empty div to maintain spacing */}
@@ -92,15 +98,23 @@ function DashboardHeader({
         {/* Right Section - Notifications, Theme Toggle, Language, Profile */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+          <DropdownMenu
+            open={notificationsOpen}
+            onOpenChange={setNotificationsOpen}
+          >
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative hover:bg-[#D8A23B]/10" aria-label="Notifications">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative hover:bg-[#D8A23B]/10"
+                aria-label="Notifications"
+              >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
                   <Badge
                     className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center"
                     variant="default"
-                    style={{ backgroundColor: '#D8A23B', color: '#09090B' }}
+                    style={{ backgroundColor: "#D8A23B", color: "#09090B" }}
                   >
                     {unreadCount}
                   </Badge>
@@ -110,7 +124,11 @@ function DashboardHeader({
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel className="flex items-center justify-between">
                 <span>Notifications</span>
-                <Button variant="ghost" size="sm" className="h-auto px-2 text-xs font-normal text-[#D8A23B] hover:text-[#D8A23B]/80 hover:bg-[#D8A23B]/10">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto px-2 text-xs font-normal text-[#D8A23B] hover:text-[#D8A23B]/80 hover:bg-[#D8A23B]/10"
+                >
                   Mark all as read
                 </Button>
               </DropdownMenuLabel>
@@ -126,14 +144,18 @@ function DashboardHeader({
                     key={notification.id}
                     className={cn(
                       "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                      !notification.read && "bg-muted/50"
+                      !notification.read && "bg-muted/50",
                     )}
                   >
                     <div className="flex w-full justify-between">
                       <span className="font-medium">{notification.title}</span>
-                      <span className="text-xs text-muted-foreground">{notification.time}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {notification.time}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{notification.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {notification.description}
+                    </p>
                   </DropdownMenuItem>
                 ))
               )}
@@ -157,17 +179,24 @@ function DashboardHeader({
           {/* User Profile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="pl-3 pr-2 gap-1 hover:bg-[#D8A23B]/10" aria-label="User menu">
+              <Button
+                variant="ghost"
+                className="pl-3 pr-2 gap-1 hover:bg-[#D8A23B]/10"
+                aria-label="User menu"
+              >
                 <Avatar className="h-8 w-8 border border-[#D8A23B]/30">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt={user?.name || "User"} />
+                  <AvatarImage
+                    src="/placeholder-avatar.jpg"
+                    alt={user?.name || "User"}
+                  />
                   <AvatarFallback>
                     {user?.name
                       ? user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .substring(0, 2)
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .substring(0, 2)
                       : "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -190,16 +219,25 @@ function DashboardHeader({
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/dashboard/profile")} className="hover:bg-[#D8A23B]/10 hover:text-[#D8A23B]">
+              <DropdownMenuItem
+                onClick={() => navigate("/dashboard/profile")}
+                className="hover:bg-[#D8A23B]/10 hover:text-[#D8A23B]"
+              >
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/dashboard/settings")} className="hover:bg-[#D8A23B]/10 hover:text-[#D8A23B]">
+              <DropdownMenuItem
+                onClick={() => navigate("/dashboard/settings")}
+                className="hover:bg-[#D8A23B]/10 hover:text-[#D8A23B]"
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="hover:bg-[#D8A23B]/10 hover:text-[#D8A23B]">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="hover:bg-[#D8A23B]/10 hover:text-[#D8A23B]"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Log out
               </DropdownMenuItem>

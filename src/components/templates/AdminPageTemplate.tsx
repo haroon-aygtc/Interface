@@ -1,7 +1,23 @@
 import React from "react";
-import { PageContainer, PageContent, PageHeader, PageSection } from "@/components/ui/page-container";
-import { SectionContainer, SectionHeader, SectionGrid, SectionDivider } from "@/components/ui/section-container";
-import { AdminCard, AdminCardContent, AdminCardHeader, AdminCardFooter, AdminCardStat } from "@/components/ui/admin-card";
+import {
+  PageContainer,
+  PageContent,
+  PageHeader,
+  PageSection,
+} from "@/components/ui/page-container";
+import {
+  SectionContainer,
+  SectionHeader,
+  SectionGrid,
+  SectionDivider,
+} from "@/components/ui/section-container";
+import {
+  AdminCard,
+  AdminCardContent,
+  AdminCardHeader,
+  AdminCardFooter,
+  AdminCardStat,
+} from "@/components/ui/admin-card";
 
 interface AdminPageTemplateProps {
   title: string;
@@ -21,11 +37,15 @@ export function AdminPageTemplate({
   children,
 }: AdminPageTemplateProps) {
   return (
-    <PageContainer>
-      <PageHeader title={title} description={description}>
+    <PageContainer className="w-full">
+      <PageHeader
+        title={title}
+        description={description}
+        className="px-6 py-4 border-b border-border"
+      >
         {headerActions}
       </PageHeader>
-      {children}
+      <div className="p-6">{children}</div>
     </PageContainer>
   );
 }
@@ -83,7 +103,11 @@ export function AdminGrid({
   columns = 2,
   className,
 }: AdminGridProps) {
-  return <SectionGrid columns={columns} className={className}>{children}</SectionGrid>;
+  return (
+    <SectionGrid columns={columns} className={className}>
+      {children}
+    </SectionGrid>
+  );
 }
 
 interface AdminStatCardProps {
@@ -112,5 +136,5 @@ export {
   AdminCardContent,
   AdminCardHeader,
   AdminCardFooter,
-  SectionDivider
+  SectionDivider,
 };

@@ -1,7 +1,13 @@
 import { Fragment, useState, useEffect } from "react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import Sidebar from "@/components/dashboard/Sidebar";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -22,17 +28,20 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
 }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     // Try to get the state from localStorage, default to false if not found
-    const saved = localStorage.getItem('sidebarCollapsed');
+    const saved = localStorage.getItem("sidebarCollapsed");
     return saved ? JSON.parse(saved) : false;
   });
 
   // Save the sidebar state to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(isSidebarCollapsed));
+    localStorage.setItem(
+      "sidebarCollapsed",
+      JSON.stringify(isSidebarCollapsed),
+    );
   }, [isSidebarCollapsed]);
 
   const toggleSidebar = () => {
-    setIsSidebarCollapsed(prev => !prev);
+    setIsSidebarCollapsed((prev) => !prev);
   };
 
   return (
@@ -43,10 +52,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
           onToggleCollapse={toggleSidebar}
         />
       </div>
-      <div className={cn(
-        "flex-1 flex flex-col overflow-hidden transition-all duration-300 ml-[280px]",
-        isSidebarCollapsed && "ml-[70px]"
-      )}>
+      <div
+        className={cn(
+          "flex-1 flex flex-col overflow-hidden transition-all duration-300 ml-[240px]",
+          isSidebarCollapsed && "ml-[60px]",
+        )}
+      >
         <DashboardHeader
           title={title}
           description={description}
@@ -54,33 +65,42 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         />
 
         {breadcrumbItems.length > 0 && (
-          <div className="px-6 py-4 border-b border-border bg-background">
-            <div className="max-w-7xl mx-auto w-full">
-            <Breadcrumb>
-              <BreadcrumbList>
-                {breadcrumbItems.map((item, index) => (
-                  <Fragment key={item.label}>
-                    <BreadcrumbItem>
-                      {item.href ? (
-                        <BreadcrumbLink asChild>
-                          <Link to={item.href} className="text-muted-foreground hover:text-[#D8A23B]">{item.label}</Link>
-                        </BreadcrumbLink>
-                      ) : (
-                        <span className="text-[#D8A23B]">{item.label}</span>
+          <div className="px-4 sm:px-6 py-3 border-b border-border bg-background">
+            <div className="w-full">
+              <Breadcrumb>
+                <BreadcrumbList>
+                  {breadcrumbItems.map((item, index) => (
+                    <Fragment key={item.label}>
+                      <BreadcrumbItem>
+                        {item.href ? (
+                          <BreadcrumbLink asChild>
+                            <Link
+                              to={item.href}
+                              className="text-muted-foreground hover:text-[#D8A23B]"
+                            >
+                              {item.label}
+                            </Link>
+                          </BreadcrumbLink>
+                        ) : (
+                          <span className="text-[#D8A23B]">{item.label}</span>
+                        )}
+                      </BreadcrumbItem>
+                      {index < breadcrumbItems.length - 1 && (
+                        <BreadcrumbSeparator />
                       )}
-                    </BreadcrumbItem>
-                    {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
-                  </Fragment>
-                ))}
-              </BreadcrumbList>
-            </Breadcrumb>
+                    </Fragment>
+                  ))}
+                </BreadcrumbList>
+              </Breadcrumb>
             </div>
           </div>
         )}
 
-        <div className="flex-1 overflow-auto p-6 bg-background text-foreground thin-scrollbar">
-          <div className="max-w-7xl mx-auto w-full">
-            {children}
+        <div className="flex-1 overflow-y-auto bg-background text-foreground thin-scrollbar">
+          <div className="w-full min-h-full p-4 sm:p-6 lg:p-8">
+            <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+              {children}
+            </div>
           </div>
         </div>
       </div>
