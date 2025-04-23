@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { FastifyRequest } from "fastify";
+import { RequestWithUser } from "../../common/types/fastify.types";
 import { ROLES_KEY } from "../decorators/roles.decorator";
 
 @Injectable()
@@ -17,7 +17,7 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest<FastifyRequest & { user?: { role: string } }>();
+    const { user } = context.switchToHttp().getRequest<RequestWithUser>();
 
     // If no user is present in the request, deny access
     if (!user) {

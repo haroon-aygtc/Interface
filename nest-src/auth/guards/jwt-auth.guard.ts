@@ -3,6 +3,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { TokenBlacklistService } from "../token-blacklist.service";
 import { ExtractJwt } from "passport-jwt";
 import { FastifyRequest } from "fastify";
+import { RequestWithUser } from "../../common/types/fastify.types";
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {

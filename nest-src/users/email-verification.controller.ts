@@ -6,7 +6,7 @@ import {
   UseGuards,
   Request,
 } from "@nestjs/common";
-import { FastifyRequest } from "fastify";
+import { RequestWithUser } from "../common/types/fastify.types";
 import { EmailVerificationService } from "./email-verification.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
@@ -32,7 +32,7 @@ export class EmailVerificationController {
 
   @UseGuards(JwtAuthGuard)
   @Post("resend")
-  async resendVerificationEmail(@Request() req: FastifyRequest & { user: { id: string } }) {
+  async resendVerificationEmail(@Request() req: RequestWithUser) {
     const verification = await this.emailVerificationService.resendVerificationEmail(
       req.user.id,
     );

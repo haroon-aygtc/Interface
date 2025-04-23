@@ -8,7 +8,7 @@ import {
   Request,
   Get,
 } from "@nestjs/common";
-import { FastifyRequest } from "fastify";
+import { RequestWithUser } from "../common/types/fastify.types";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
@@ -34,14 +34,14 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post("logout")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async logout(@Request() req: FastifyRequest & { user: { id: string } }) {
+  async logout(@Request() req: RequestWithUser) {
     await this.authService.logout(req.user.id);
     return;
   }
 
   @UseGuards(JwtAuthGuard)
   @Get("profile")
-  getProfile(@Request() req: FastifyRequest & { user: any }) {
+  getProfile(@Request() req: RequestWithUser) {
     return req.user;
   }
 
