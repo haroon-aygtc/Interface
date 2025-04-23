@@ -14,7 +14,7 @@ import {
   SystemConfigPanelWrapper,
   KnowledgeBasePanelWrapper,
   UserManagementPanelWrapper,
-  AIInsightsPanelWrapper
+  AIInsightsPanelWrapper,
 } from "./components/dashboard/wrappers/AdminPanelWrappers";
 import AIIntegrationPanelWrapper from "./components/dashboard/wrappers/AIIntegrationPanelWrapper";
 import AIModelConfigPanelWrapper from "./components/dashboard/wrappers/AIModelConfigPanelWrapper";
@@ -22,6 +22,7 @@ import AnalyticsDashboardWrapper from "./components/dashboard/wrappers/Analytics
 import LuxuryHome from "./components/landing-page/LuxuryHome";
 import MockSelectorGroupManagerWrapper from "./components/dashboard/wrappers/MockSelectorGroupManagerWrapper";
 import ChatWidgetTestPageWrapper from "./components/dashboard/wrappers/ChatWidgetTestPageWrapper";
+import RolePermissionManagerWrapper from "./components/dashboard/wrappers/RolePermissionManagerWrapper";
 
 // Define route paths as constants for easy reference
 export const ROUTES = {
@@ -110,6 +111,7 @@ export const ROUTES = {
   USER_MANAGEMENT_EDIT_USER: "/dashboard/user-management/edit-user",
   USER_MANAGEMENT_ADD_ROLE: "/dashboard/user-management/add-role",
   USER_MANAGEMENT_EDIT_ROLE: "/dashboard/user-management/edit-role",
+  ROLE_PERMISSIONS: "/dashboard/role-permissions",
 
   // Redirects - Main sections
   ADMIN: "/admin",
@@ -252,6 +254,11 @@ const routes = [
     path: ROUTES.USER_MANAGEMENT,
     element: <UserManagementPanelWrapper />,
   },
+  // Role Permissions route
+  {
+    path: ROUTES.ROLE_PERMISSIONS,
+    element: <RolePermissionManagerWrapper />,
+  },
   // Redirects
   {
     path: ROUTES.ADMIN,
@@ -296,6 +303,11 @@ const routes = [
   {
     path: ROUTES.KNOWLEDGE,
     element: <Navigate to={ROUTES.KNOWLEDGE_BASE} replace />,
+  },
+  // Allow Tempo routes
+  {
+    path: "/tempobook/*",
+    element: null,
   },
   // Default redirect for unknown routes
   {

@@ -1,6 +1,8 @@
-import React from 'react';
-import DashboardPage from '@/components/layouts/DashboardPage';
-import AnalyticsDashboard from '@/components/dashboard/AnalyticsDashboard';
+import React from "react";
+import DashboardPage from "@/components/layouts/DashboardPage";
+import AnalyticsDashboard from "@/components/dashboard/AnalyticsDashboard";
+import { AdminContent } from "@/components/ui/admin-layout";
+import { ROUTES } from "@/routes";
 
 const AnalyticsDashboardWrapper = () => {
   return (
@@ -8,12 +10,14 @@ const AnalyticsDashboardWrapper = () => {
       title="Analytics Dashboard"
       description="Interactive data visualization and analytics"
       breadcrumbItems={[
-        { label: 'Dashboard', link: '/dashboard' },
-        { label: 'Analytics', link: '/dashboard/analytics' },
-        { label: 'Interactive Dashboard', link: '/dashboard/analytics/interactive' }
+        { label: "Dashboard", href: ROUTES.DASHBOARD },
+        { label: "Analytics", href: ROUTES.ANALYTICS },
+        { label: "Interactive Dashboard" },
       ]}
     >
-      <AnalyticsDashboard />
+      <AdminContent>
+        <AnalyticsDashboard />
+      </AdminContent>
     </DashboardPage>
   );
 };

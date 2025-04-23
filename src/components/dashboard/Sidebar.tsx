@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "../../routes";
@@ -57,20 +56,25 @@ const NavItem = ({
       onClick={onClick}
       title={isCollapsed ? label : undefined}
     >
-      <div className={cn("flex items-center", isCollapsed ? "justify-center w-full" : "gap-3")}>
+      <div
+        className={cn(
+          "flex items-center",
+          isCollapsed ? "justify-center w-full" : "gap-3",
+        )}
+      >
         <div className="relative w-8 h-8 flex-shrink-0">
           <div className="absolute inset-0 rounded-md bg-gradient-to-br from-[#D8A23B] to-[#9F7425] opacity-10 transition-opacity duration-200 group-hover:opacity-20"></div>
           <div
             className={cn(
               "absolute inset-0 flex items-center justify-center transition-all duration-200",
-              isActive
-                ? "text-[#D8A23B]"
-                : "text-[#D8A23B]/80",
+              isActive ? "text-[#D8A23B]" : "text-[#D8A23B]/80",
             )}
           >
             {icon}
           </div>
-          {isActive && <div className="absolute -left-4 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-[#D8A23B]"></div>}
+          {isActive && (
+            <div className="absolute -left-4 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-[#D8A23B]"></div>
+          )}
         </div>
         {!isCollapsed && <span>{label}</span>}
       </div>
@@ -102,7 +106,7 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
     <div
       className={cn(
         "flex h-full flex-shrink-0 flex-col border-r bg-[#09090B] text-white transition-all duration-300 border-r-[#D8A23B]/10",
-        isCollapsed ? "w-[70px]" : "w-[280px]"
+        isCollapsed ? "w-[60px]" : "w-[240px]",
       )}
     >
       <div className="flex h-24 items-center justify-center border-b border-[#D8A23B]/10 px-2">
@@ -113,7 +117,11 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
             </div>
           ) : (
             <div className="h-12 w-12 rounded-md overflow-hidden">
-              <img src="/logo.png" alt="Al Yalayis Hub" className="h-full w-full object-contain" />
+              <img
+                src="/logo.png"
+                alt="Al Yalayis Hub"
+                className="h-full w-full object-contain"
+              />
             </div>
           )}
         </div>
@@ -126,9 +134,11 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
         className="absolute top-24 -right-3.5 h-7 w-7 rounded-full border border-[#D8A23B]/30 bg-[#09090B] p-0 shadow-md z-10 hover:bg-[#D8A23B]/20 transition-colors duration-200"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
-        {isCollapsed ?
-          <ChevronRight className="h-3 w-3 text-[#D8A23B]" /> :
-          <ChevronLeft className="h-3 w-3 text-[#D8A23B]" />}
+        {isCollapsed ? (
+          <ChevronRight className="h-3 w-3 text-[#D8A23B]" />
+        ) : (
+          <ChevronLeft className="h-3 w-3 text-[#D8A23B]" />
+        )}
       </Button>
 
       <div className="flex-1 overflow-auto py-8 thin-scrollbar">
@@ -217,7 +227,9 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
 
         {!isCollapsed && (
           <div className="px-4 mb-3 text-xs font-semibold text-[#D8A23B] uppercase tracking-wider">
-            <span className="border-b border-[#D8A23B]/30 pb-1">Configuration</span>
+            <span className="border-b border-[#D8A23B]/30 pb-1">
+              Configuration
+            </span>
           </div>
         )}
         <nav className="grid gap-2 px-3">
@@ -268,7 +280,12 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
         </nav>
       </div>
 
-      <div className={cn("mt-auto border-t border-[#D8A23B]/10", isCollapsed ? "p-2" : "p-4")}>
+      <div
+        className={cn(
+          "mt-auto border-t border-[#D8A23B]/10",
+          isCollapsed ? "p-2" : "p-4",
+        )}
+      >
         {isCollapsed ? (
           <div className="flex justify-center mb-4">
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#D8A23B] to-[#9F7425] flex items-center justify-center text-[#09090B] font-bold">
@@ -282,7 +299,9 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
             </div>
             <div className="flex-1">
               <div className="text-sm font-medium">Admin User</div>
-              <div className="text-xs text-muted-foreground">admin@example.com</div>
+              <div className="text-xs text-muted-foreground">
+                admin@example.com
+              </div>
             </div>
             <LuxuryThemeToggle />
           </div>
