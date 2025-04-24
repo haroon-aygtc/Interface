@@ -27,11 +27,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 interface DashboardHeaderProps {
+  title?: string;
+  description?: string;
+  actions?: React.ReactNode;
   onToggleSidebar?: () => void;
   isSidebarOpen?: boolean;
 }
 
 function DashboardHeader({
+  title,
+  description,
+  actions,
   onToggleSidebar,
   isSidebarOpen,
 }: DashboardHeaderProps) {
@@ -75,8 +81,8 @@ function DashboardHeader({
   return (
     <header className="sticky top-0 z-30 h-20 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-20 items-center justify-between px-4 sm:px-6 max-w-full mx-auto w-full">
-        {/* Left Section - Logo and Sidebar Toggle */}
-        <div className="flex items-center gap-2">
+        {/* Left Section - Logo, Sidebar Toggle, Title and Description */}
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -91,12 +97,19 @@ function DashboardHeader({
             )}
           </Button>
 
-          {/* Empty div to maintain spacing */}
-          <div></div>
+          {/* Title and Description */}
+          {(title || description) && (
+            <div className="flex flex-col justify-center">
+              {title && <h1 className="text-lg font-semibold">{title}</h1>}
+              {description && <p className="text-sm text-muted-foreground">{description}</p>}
+            </div>
+          )}
         </div>
 
-        {/* Right Section - Notifications, Theme Toggle, Language, Profile */}
+        {/* Right Section - Actions, Notifications, Theme Toggle, Language, Profile */}
         <div className="flex items-center gap-3">
+          {/* Actions */}
+          {actions && <div className="mr-2">{actions}</div>}
           {/* Notifications */}
           <DropdownMenu
             open={notificationsOpen}
@@ -192,11 +205,11 @@ function DashboardHeader({
                   <AvatarFallback>
                     {user?.name
                       ? user.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .substring(0, 2)
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .substring(0, 2)
                       : "U"}
                   </AvatarFallback>
                 </Avatar>

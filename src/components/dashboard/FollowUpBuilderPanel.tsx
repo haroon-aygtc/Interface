@@ -1,0 +1,254 @@
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MessageSquare, Settings, Workflow } from "lucide-react";
+import { mockFollowUpQuestions } from "./ai-model-config/mockData";
+import { FollowUpQuestion } from "./follow-up-builder/QuestionCard";
+import QuestionLibrary from "./follow-up-builder/QuestionLibrary";
+import QuestionFlowBuilder from "./follow-up-builder/QuestionFlowBuilder";
+import FollowUpSettings from "./follow-up-builder/FollowUpSettings";
+import { toast } from "@/components/ui/use-toast";
+
+// Enhanced mock data with answers and categories
+const enhancedMockQuestions: FollowUpQuestion[] = mockFollowUpQuestions.map(q => ({
+  ...q,
+  answers: [
+    {
+      id: `ans-${q.id}-1`,
+      type: 'text',
+      content: "Here's more information about our pricing plans..."
+    },
+    {
+      id: `ans-${q.id}-2`,
+      type: 'link',
+      content: "View our pricing page",
+      metadata: {
+        url: "https://example.com/pricing"
+      }
+    },
+    {
+      id: `ans-${q.id}-3`,
+      type: 'button',
+      content: "Talk to Sales",
+      metadata: {
+        buttonStyle: 'primary'
+      }
+    }
+  ],
+  category: ["Product", "Pricing", "Support", "Technical", "General"][Math.floor(Math.random() * 5)]
+}));
+
+// Mock flow data
+interface QuestionFlow {
+  id: string;
+  name: string;
+  description: string;
+  questions: string[];
+  isActive: boolean;
+  position: "start" | "inline" | "end";
+}
+
+const mockFlows: QuestionFlow[] = [
+  {
+    id: "flow-1",
+    name: "Product Information Flow",
+    description: "Questions about product features and capabilities",
+    questions: [enhancedMockQuestions[0].id, enhancedMockQuestions[1].id],
+    isActive: true,
+    position: "end",
+  },
+  {
+    id: "flow-2",
+    name: "Pricing Inquiry Flow",
+    description: "Questions about pricing and subscription options",
+    questions: [enhancedMockQuestions[2].id],
+    isActive: false,
+    position: "inline",
+  },
+];
+
+const FollowUpBuilderPanel: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("library");
+  const [followUpQuestions, setFollowUpQuestions] = useState<FollowUpQuestion[]>(enhancedMockQuestions);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+  const [questionFlows, setQuestionFlows] = useState<QuestionFlow[]>(mockFlows);
+  const [followUpSettings, setFollowUpSettings] = useState({
+    enabled: true,
+    maxQuestionsPerResponse: 3,
+    displayPosition: "end" as "inline" | "end" | "floating",
+    autoSuggestThreshold: 70,
+    allowUserDismiss: true,
+    trackInteractions: true,
+    defaultCategory: "General",
+  });
+
+  // Question Library handlers
+  const handleCreateQuestion = (question: FollowUpQuestion) => {
+    setFollowUpQuestions([...followUpQuestions, question]);
+    toast({
+      title: "Question Created",
+      description: "Your follow-up question has been created successfully.",
+    });
+  };
+
+  const handleUpdateQuestion = (question: FollowUpQuestion) => {
+    setFollowUpQuestions(followUpQuestions.map(q =>
+      q.id === question.id ? question : q
+    ));
+    toast({
+      title: "Question Updated",
+      description: "Your follow-up question has been updated successfully.",
+    });
+  };
+
+  const handleDeleteQuestion = (id: string) => {
+    setFollowUpQuestions(followUpQuestions.filter(q => q.id !== id));
+    setSelectedQuestionIds(selectedQuestionIds.filter(qId => qId !== id));
+
+    // Also remove from any flows
+    setQuestionFlows(questionFlows.map(flow => ({
+      ...flow,
+      questions: flow.questions.filter(qId => qId !== id)
+    })));
+
+    toast({
+      title: "Question Deleted",
+      description: "Your follow-up question has been deleted successfully.",
+    });
+  };
+
+  const handleSelectQuestion = (id: string) => {
+    setSelectedQuestionIds(prev =>
+      prev.includes(id)
+        ? prev.filter(qId => qId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedQuestionIds(followUpQuestions.map(q => q.id));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedQuestionIds([]);
+  };
+
+  // Question Flow handlers
+  const handleSaveFlow = (flow: QuestionFlow) => {
+    const exists = questionFlows.some(f => f.id === flow.id);
+    if (exists) {
+      setQuestionFlows(questionFlows.map(f =>
+        f.id === flow.id ? flow : f
+      ));
+      toast({
+        title: "Flow Updated",
+        description: `Flow "${flow.name}" has been updated successfully.`,
+      });
+    } else {
+      setQuestionFlows([...questionFlows, flow]);
+      toast({
+        title: "Flow Created",
+        description: `Flow "${flow.name}" has been created successfully.`,
+      });
+    }
+  };
+
+  const handleDeleteFlow = (id: string) => {
+    setQuestionFlows(questionFlows.filter(f => f.id !== id));
+    toast({
+      title: "Flow Deleted",
+      description: "The question flow has been deleted successfully.",
+    });
+  };
+
+  const handleActivateFlow = (id: string, active: boolean) => {
+    setQuestionFlows(questionFlows.map(f =>
+      f.id === id ? { ...f, isActive: active } : f
+    ));
+    toast({
+      title: active ? "Flow Activated" : "Flow Deactivated",
+      description: `The question flow has been ${active ? "activated" : "deactivated"} successfully.`,
+    });
+  };
+
+  // Settings handlers
+  const handleUpdateSettings = (settings: any) => {
+    setFollowUpSettings(settings);
+  };
+
+  const handleSaveSettings = () => {
+    toast({
+      title: "Settings Saved",
+      description: "Your follow-up question settings have been saved successfully.",
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Follow-Up Builder</h1>
+        <p className="text-muted-foreground mt-1">
+          Create and manage follow-up questions for your AI conversations
+        </p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-3 w-full mb-6">
+          <TabsTrigger value="library" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Question Library
+          </TabsTrigger>
+          <TabsTrigger value="flows" className="flex items-center gap-2">
+            <Workflow className="h-4 w-4" />
+            Question Flows
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="library" className="space-y-6">
+          <QuestionLibrary
+            questions={followUpQuestions}
+            selectedQuestionIds={selectedQuestionIds}
+            onCreateQuestion={handleCreateQuestion}
+            onUpdateQuestion={handleUpdateQuestion}
+            onDeleteQuestion={handleDeleteQuestion}
+            onSelectQuestion={handleSelectQuestion}
+            onSelectAll={handleSelectAll}
+            onClearSelection={handleClearSelection}
+          />
+        </TabsContent>
+
+        <TabsContent value="flows" className="space-y-6">
+          <QuestionFlowBuilder
+            questions={followUpQuestions}
+            flows={questionFlows}
+            onSaveFlow={handleSaveFlow}
+            onDeleteFlow={handleDeleteFlow}
+            onActivateFlow={handleActivateFlow}
+          />
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <FollowUpSettings
+            settings={followUpSettings}
+            onUpdateSettings={handleUpdateSettings}
+            onSaveSettings={handleSaveSettings}
+          />
+        </TabsContent>
+      </Tabs>
+
+
+    </div >
+  );
+};
+
+export default FollowUpBuilderPanel;

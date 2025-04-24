@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { ROUTES } from "../../routes";
 import { LuxuryThemeToggle } from "@/components/landing-page/LuxuryThemeToggle";
 import { LuxuryLogo } from "@/components/landing-page/LuxuryLogo";
-import { useTheme } from "@/contexts/ThemeContext";
+// import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -19,10 +19,14 @@ import {
   Sparkles,
   BookOpen,
   MessageSquare,
-  Brain,
   ChevronLeft,
   ChevronRight,
   TrendingUp,
+  Building2,
+  Maximize,
+  Shield,
+  FolderTree,
+  Palette,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -100,7 +104,8 @@ interface SidebarProps {
 const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { theme } = useTheme();
+  // We might use theme later, but not using it now
+  // const { theme } = useTheme();
 
   return (
     <div
@@ -159,15 +164,7 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
             icon={<Bot className="h-5 w-5" />}
             label="AI Model Configuration"
             href={ROUTES.AI_MODELS}
-            isActive={currentPath.startsWith(ROUTES.AI_MODELS)}
-            badge="New"
-            isCollapsed={isCollapsed}
-          />
-          <NavItem
-            icon={<Brain className="h-5 w-5" />}
-            label="AI Model Config Panel"
-            href={ROUTES.AI_MODEL_CONFIG}
-            isActive={currentPath.startsWith(ROUTES.AI_MODEL_CONFIG)}
+            isActive={currentPath.startsWith(ROUTES.AI_MODELS) || currentPath.startsWith(ROUTES.AI_MODEL_CONFIG)}
             badge="New"
             isCollapsed={isCollapsed}
           />
@@ -191,6 +188,30 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
             label="Prompt Templates"
             href={ROUTES.PROMPT_TEMPLATES}
             isActive={currentPath.startsWith(ROUTES.PROMPT_TEMPLATES)}
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
+            icon={<FileText className="h-5 w-5" />}
+            label="Response Formatter"
+            href={ROUTES.RESPONSE_FORMATTER}
+            isActive={currentPath.startsWith(ROUTES.RESPONSE_FORMATTER)}
+            badge="New"
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
+            icon={<MessageSquare className="h-5 w-5" />}
+            label="Follow-Up Builder"
+            href={ROUTES.FOLLOW_UP_BUILDER}
+            isActive={currentPath.startsWith(ROUTES.FOLLOW_UP_BUILDER)}
+            badge="New"
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
+            icon={<Palette className="h-5 w-5" />}
+            label="Branding Manager"
+            href={ROUTES.BRANDING_MANAGER}
+            isActive={currentPath.startsWith(ROUTES.BRANDING_MANAGER)}
+            badge="New"
             isCollapsed={isCollapsed}
           />
         </nav>
@@ -220,7 +241,14 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
             icon={<Globe className="h-5 w-5" />}
             label="Web Scraping"
             href={ROUTES.WEB_SCRAPING}
-            isActive={currentPath.startsWith(ROUTES.WEB_SCRAPING)}
+            isActive={currentPath.startsWith(ROUTES.WEB_SCRAPING) && !currentPath.startsWith(ROUTES.SELECTOR_GROUPS)}
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
+            icon={<FolderTree className="h-5 w-5" />}
+            label="Selector Groups"
+            href={ROUTES.SELECTOR_GROUPS}
+            isActive={currentPath.startsWith(ROUTES.SELECTOR_GROUPS)}
             isCollapsed={isCollapsed}
           />
         </nav>
@@ -242,10 +270,26 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
             isCollapsed={isCollapsed}
           />
           <NavItem
+            icon={<Maximize className="h-5 w-5" />}
+            label="Widget Preview"
+            href={ROUTES.WIDGET_PREVIEW}
+            isActive={currentPath.startsWith(ROUTES.WIDGET_PREVIEW)}
+            badge="New"
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
             icon={<Sparkles className="h-5 w-5" />}
             label="AI Insights"
             href={ROUTES.AI_INSIGHTS}
             isActive={currentPath.startsWith(ROUTES.AI_INSIGHTS)}
+            badge="New"
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
+            icon={<BarChart2 className="h-5 w-5" />}
+            label="AI Visualization"
+            href={ROUTES.AI_VISUALIZATION}
+            isActive={currentPath.startsWith(ROUTES.AI_VISUALIZATION)}
             badge="New"
             isCollapsed={isCollapsed}
           />
@@ -271,10 +315,24 @@ const Sidebar = ({ isCollapsed = false, onToggleCollapse }: SidebarProps) => {
             isCollapsed={isCollapsed}
           />
           <NavItem
+            icon={<Shield className="h-5 w-5" />}
+            label="Role Permissions"
+            href={ROUTES.ROLE_PERMISSIONS}
+            isActive={currentPath.startsWith(ROUTES.ROLE_PERMISSIONS)}
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
             icon={<Settings className="h-5 w-5" />}
             label="System Settings"
             href={ROUTES.SYSTEM_CONFIG}
             isActive={currentPath.startsWith(ROUTES.SYSTEM_CONFIG)}
+            isCollapsed={isCollapsed}
+          />
+          <NavItem
+            icon={<Building2 className="h-5 w-5" />}
+            label="Tenant Configuration"
+            href={ROUTES.TENANT_CONFIG}
+            isActive={currentPath.startsWith(ROUTES.TENANT_CONFIG)}
             isCollapsed={isCollapsed}
           />
         </nav>

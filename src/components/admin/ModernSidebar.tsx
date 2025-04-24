@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   Settings,
@@ -23,6 +23,7 @@ import {
   Wrench,
   Layers,
   Database,
+  ChevronLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -119,10 +120,10 @@ const ModernSidebar = ({
           label: "Manage Rules",
           path: "/dashboard/context-rules/list",
         },
-        { 
-          id: "test", 
-          label: "Test Rules", 
-          path: "/dashboard/context-rules/test" 
+        {
+          id: "test",
+          label: "Test Rules",
+          path: "/dashboard/context-rules/test"
         },
       ],
     },
@@ -565,7 +566,7 @@ const ModernSidebar = ({
       {/* Footer */}
       <div className="p-4 border-t border-indigo-800/50 flex items-center justify-between">
         {!collapsed && <ThemeToggle />}
-        
+
         <Link
           to="/"
           className={cn(

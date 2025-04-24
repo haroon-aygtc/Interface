@@ -30,6 +30,7 @@ import PromptTemplateTab from "./ai-model-config/PromptTemplateTab";
 import KnowledgeSourceTab from "./ai-model-config/KnowledgeSourceTab";
 import SimpleResponseFormatterTab from "./ai-model-config/SimpleResponseFormatterTab";
 import FollowUpFlowTab from "./ai-model-config/FollowUpFlowTab";
+import TestPreviewTab from "./ai-model-config/TestPreviewTab";
 import SaveConfigDialog from "./ai-model-config/SaveConfigDialog";
 
 // Import types and mock data
@@ -265,7 +266,7 @@ const AIModelConfigPanel: React.FC<AIModelConfigPanelProps> = ({
 
   return (
     <div className="w-full h-full bg-background">
-      <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="space-y-6 w-full">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="basic">

@@ -17,13 +17,19 @@ import {
   UserManagementPanelWrapper,
   AIInsightsPanelWrapper,
 } from "./components/dashboard/wrappers/AdminPanelWrappers";
-import AIIntegrationPanelWrapper from "./components/dashboard/wrappers/AIIntegrationPanelWrapper";
+// AIIntegrationPanelWrapper removed as it's redundant with AIModelConfigPanelWrapper
 import AIModelConfigPanelWrapper from "./components/dashboard/wrappers/AIModelConfigPanelWrapper";
 import AnalyticsDashboardWrapper from "./components/dashboard/wrappers/AnalyticsDashboardWrapper";
 import LuxuryHome from "./components/landing-page/LuxuryHome";
 import MockSelectorGroupManagerWrapper from "./components/dashboard/wrappers/MockSelectorGroupManagerWrapper";
 import ChatWidgetTestPageWrapper from "./components/dashboard/wrappers/ChatWidgetTestPageWrapper";
 import RolePermissionManagerWrapper from "./components/dashboard/wrappers/RolePermissionManagerWrapper";
+import AIVisualizationPanelWrapper from "./components/dashboard/wrappers/AIVisualizationPanelWrapper";
+import TenantConfigWrapper from "./components/dashboard/wrappers/TenantConfigWrapper";
+import EmbeddedWidgetPreviewWrapper from "./components/dashboard/wrappers/EmbeddedWidgetPreviewWrapper";
+import ResponseFormatterPanelWrapper from "./components/dashboard/wrappers/ResponseFormatterPanelWrapper";
+import FollowUpBuilderPanelWrapper from "./components/dashboard/wrappers/FollowUpBuilderPanelWrapper";
+import BrandingManagerPanelWrapper from "./components/dashboard/wrappers/BrandingManagerPanelWrapper";
 
 // Define route paths as constants for easy reference
 export const ROUTES = {
@@ -87,7 +93,12 @@ export const ROUTES = {
   INTEGRATION_CODE: "/dashboard/integration/code",
   INTEGRATION_ADVANCED: "/dashboard/integration/advanced",
   CHAT_WIDGET_TEST: "/dashboard/chat-widget-test",
+  WIDGET_PREVIEW: "/dashboard/widget-preview",
   AI_INSIGHTS: "/dashboard/ai-insights",
+  AI_VISUALIZATION: "/dashboard/ai-visualization",
+  RESPONSE_FORMATTER: "/dashboard/response-formatter",
+  FOLLOW_UP_BUILDER: "/dashboard/follow-up-builder",
+  BRANDING_MANAGER: "/dashboard/branding-manager",
 
   // System Config routes
   SYSTEM_CONFIG: "/dashboard/system-config",
@@ -95,6 +106,9 @@ export const ROUTES = {
   SYSTEM_CONFIG_API: "/dashboard/system-config/api-connections",
   SYSTEM_CONFIG_SESSIONS: "/dashboard/system-config/sessions",
   SYSTEM_CONFIG_STORAGE: "/dashboard/system-config/storage",
+
+  // Tenant Config routes
+  TENANT_CONFIG: "/dashboard/tenant-config",
 
   // Knowledge Base routes
   KNOWLEDGE_BASE: "/dashboard/knowledge-base",
@@ -189,7 +203,7 @@ const routes = [
   // AI Models routes
   {
     path: ROUTES.AI_MODELS,
-    element: <AIModelConfigWrapper />,
+    element: <AIModelConfigPanelWrapper />,
   },
   {
     path: ROUTES.AI_MODEL_CONFIG,
@@ -198,7 +212,7 @@ const routes = [
   // AI Integration routes
   {
     path: ROUTES.AI_INTEGRATION,
-    element: <AIIntegrationPanelWrapper />,
+    element: <AIModelConfigPanelWrapper />,
   },
   // Context Rules routes
   {
@@ -239,10 +253,35 @@ const routes = [
     path: ROUTES.CHAT_WIDGET_TEST,
     element: <ChatWidgetTestPageWrapper />,
   },
+  // Widget Preview route
+  {
+    path: ROUTES.WIDGET_PREVIEW,
+    element: <EmbeddedWidgetPreviewWrapper />,
+  },
   // AI Insights route
   {
     path: ROUTES.AI_INSIGHTS,
     element: <AIInsightsPanelWrapper />,
+  },
+  // AI Visualization route
+  {
+    path: ROUTES.AI_VISUALIZATION,
+    element: <AIVisualizationPanelWrapper />,
+  },
+  // Response Formatter route
+  {
+    path: ROUTES.RESPONSE_FORMATTER,
+    element: <ResponseFormatterPanelWrapper />,
+  },
+  // Follow-Up Builder route
+  {
+    path: ROUTES.FOLLOW_UP_BUILDER,
+    element: <FollowUpBuilderPanelWrapper />,
+  },
+  // Branding Manager route
+  {
+    path: ROUTES.BRANDING_MANAGER,
+    element: <BrandingManagerPanelWrapper />,
   },
   // System Config routes
   {
@@ -263,6 +302,11 @@ const routes = [
   {
     path: ROUTES.ROLE_PERMISSIONS,
     element: <RolePermissionManagerWrapper />,
+  },
+  // Tenant Config route
+  {
+    path: ROUTES.TENANT_CONFIG,
+    element: <TenantConfigWrapper />,
   },
   // Redirects
   {

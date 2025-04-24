@@ -96,7 +96,7 @@ async function seed() {
       for (const perm of allPermissions) {
         const rolePermission = rolePermissionRepository.create({
           role: "admin",
-          permission: perm,
+          permissionId: perm.id,
         });
 
         await rolePermissionRepository.save(rolePermission);
@@ -111,7 +111,7 @@ async function seed() {
       for (const permName of editorPermissions) {
         const rolePermission = rolePermissionRepository.create({
           role: "editor",
-          permission: permissionMap[permName],
+          permissionId: permissionMap[permName].id,
         });
 
         await rolePermissionRepository.save(rolePermission);
@@ -122,7 +122,7 @@ async function seed() {
       for (const permName of viewerPermissions) {
         const rolePermission = rolePermissionRepository.create({
           role: "viewer",
-          permission: permissionMap[permName],
+          permissionId: permissionMap[permName].id,
         });
 
         await rolePermissionRepository.save(rolePermission);
@@ -133,7 +133,7 @@ async function seed() {
       for (const permName of guestPermissions) {
         const rolePermission = rolePermissionRepository.create({
           role: "guest",
-          permission: permissionMap[permName],
+          permissionId: permissionMap[permName].id,
         });
 
         await rolePermissionRepository.save(rolePermission);

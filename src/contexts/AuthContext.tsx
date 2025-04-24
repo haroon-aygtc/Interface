@@ -41,14 +41,14 @@ export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: false,
   error: null,
-  login: async () => {},
-  register: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  register: async () => { },
+  logout: async () => { },
   refreshToken: async () => false,
-  forgotPassword: async () => {},
-  resetPassword: async () => {},
+  forgotPassword: async () => { },
+  resetPassword: async () => { },
   checkPermission: () => false,
-  clearError: () => {},
+  clearError: () => { },
 });
 
 // Custom hook to use the auth context
@@ -73,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Initialize auth state from local storage
   useEffect(() => {
     const initializeAuth = async () => {
+      setIsLoading(true);
       try {
         const token = getAuthToken();
         const cachedUser = getUserData();
@@ -82,19 +83,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             // Validate token with the server
             const userData = await apiService.get<User>(API_ENDPOINTS.PROFILE);
             if (userData) {
+              // Update user data in state and storage
               setUser(userData);
+              setUserData(userData);
             } else {
               // Token is invalid, clear storage
               clearAuthData();
+              setUser(null);
             }
           } catch (err) {
             console.error("Failed to validate token:", err);
+            // Clear auth data on error
             clearAuthData();
+            setUser(null);
           }
+        } else {
+          // No token or user data in storage
+          clearAuthData();
+          setUser(null);
         }
       } catch (err) {
         console.error("Failed to initialize auth:", err);
         clearAuthData();
+        setUser(null);
       } finally {
         setIsLoading(false);
       }

@@ -1,19 +1,19 @@
 import React from "react";
 import DashboardPage from "@/components/layouts/DashboardPage";
-import AIIntegrationPanel from "@/components/dashboard/AIIntegrationPanel";
+import TenantConfig from "@/components/dashboard/TenantConfig";
+import { AdminContent } from "@/components/ui/admin-layout";
 import { ROUTES } from "@/routes";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
-import { AdminContent } from "@/components/ui/admin-layout";
 
-const AIIntegrationPanelWrapper: React.FC = () => {
+const TenantConfigWrapper: React.FC = () => {
   return (
     <DashboardPage
-      title="AI Integration"
-      description="Configure and test your AI assistant"
+      title="Tenant Configuration"
+      description="Configure settings for your tenant"
       breadcrumbItems={[
         { label: "Dashboard", href: ROUTES.DASHBOARD },
-        { label: "AI Integration" },
+        { label: "Tenant Configuration" },
       ]}
       actions={
         <Button className="gap-2">
@@ -23,10 +23,10 @@ const AIIntegrationPanelWrapper: React.FC = () => {
       }
     >
       <AdminContent>
-        <AIIntegrationPanel />
+        <TenantConfig />
       </AdminContent>
     </DashboardPage>
   );
 };
 
-export default AIIntegrationPanelWrapper;
+export default TenantConfigWrapper;

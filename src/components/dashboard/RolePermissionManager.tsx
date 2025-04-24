@@ -76,20 +76,41 @@ const RolePermissionManager: React.FC = () => {
     setError(null);
 
     try {
+      // Add a delay to ensure the component is mounted
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const response = await apiService.get(
         `${API_ENDPOINTS.PERMISSIONS}/roles`,
       );
+
+      // Check if the response is valid
+      if (!Array.isArray(response)) {
+        throw new Error("Invalid response format from server");
+      }
+
+      // Process the response
       const permissions = response.reduce(
         (acc: Record<string, string[]>, item: any) => {
-          acc[item.role] = item.permissions;
+          if (item && item.role && Array.isArray(item.permissions)) {
+            acc[item.role] = item.permissions;
+          }
           return acc;
         },
         {},
       );
+
+      // Ensure we have default roles even if they're not in the response
+      const defaultRoles = ["admin", "editor", "viewer", "guest"];
+      defaultRoles.forEach(role => {
+        if (!permissions[role]) {
+          permissions[role] = [];
+        }
+      });
+
       setRolePermissions(permissions);
     } catch (err: any) {
       const errorMessage = err.message || "Failed to fetch permissions";
-      console.error(errorMessage, err);
+      console.error("Permission fetch error:", errorMessage, err);
       setError(errorMessage);
       toast({
         title: "Error",

@@ -23,7 +23,7 @@ export const RoleGate: React.FC<RoleGateProps> = ({
     if (!user) return false;
 
     if (Array.isArray(roles)) {
-      return roles.includes(user.role);
+      return roles.includes(user.role as Role);
     }
 
     return user.role === roles;

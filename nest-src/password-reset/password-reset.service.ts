@@ -53,6 +53,7 @@ export class PasswordResetService {
     console.log(
       `Password reset requested for ${email}. Token: ${passwordReset.token}`,
     );
+    // Email logic to send the reset link can be added here
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {

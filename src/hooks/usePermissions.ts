@@ -22,28 +22,61 @@ export const usePermissions = () => {
     setError(null);
 
     try {
+      // Add a small delay to ensure the component is mounted
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       const data = await apiService.get(`${API_ENDPOINTS.PERMISSIONS}/roles`);
+
+      // Validate the response
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format from server");
+      }
+
+      // Process the response
       const permissions = data.reduce(
         (acc: Record<string, string[]>, item: any) => {
-          acc[item.role] = item.permissions;
+          if (item && item.role && Array.isArray(item.permissions)) {
+            acc[item.role] = item.permissions;
+          }
           return acc;
         },
         {},
       );
+
+      // Ensure we have default roles even if they're not in the response
+      const defaultRoles = ["admin", "editor", "viewer", "guest"];
+      defaultRoles.forEach(role => {
+        if (!permissions[role]) {
+          permissions[role] = role === "admin"
+            ? Object.values(PERMISSIONS) // Admin has all permissions
+            : [];
+        }
+      });
+
       setRolePermissions(permissions);
       return permissions;
     } catch (err: any) {
       const errorMessage = err.message || "Failed to fetch permissions";
-      console.error(errorMessage, err);
+      console.error("Permission fetch error:", errorMessage, err);
       setError(errorMessage);
 
-      // Show toast notification for error
-      toast({
-        title: "Permission Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      return {};
+      // Show toast notification for error only if it's not a network error
+      // to avoid duplicate error messages
+      if (!errorMessage.includes("Network error")) {
+        toast({
+          title: "Permission Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+
+      // Return a default permissions object with admin having all permissions
+      return {
+        admin: Object.values(PERMISSIONS),
+        editor: [],
+        viewer: [],
+        guest: []
+      };
     } finally {
       setLoading(false);
     }

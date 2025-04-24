@@ -107,37 +107,52 @@ export const apiService = {
 
     try {
       // Race between fetch and timeout
-      let response = await Promise.race([
-        fetch(fullUrl, {
-          ...options,
-          headers,
-        }),
-        timeoutPromise(API_TIMEOUT),
-      ]);
+      let response;
+      try {
+        response = await Promise.race([
+          fetch(fullUrl, {
+            ...options,
+            headers,
+            credentials: 'include', // Include cookies for CORS requests
+          }),
+          timeoutPromise(API_TIMEOUT),
+        ]);
+      } catch (fetchError) {
+        // Handle network errors (e.g., server not reachable)
+        console.error("Network error:", fetchError);
+        throw new ApiError("Network error: Unable to connect to server", 0);
+      }
 
       // Handle 401 Unauthorized - Try to refresh token
       if (response.status === 401 && getRefreshToken() && url !== API_ENDPOINTS.REFRESH_TOKEN) {
-        // Import dynamically to avoid circular dependency
-        const { authService } = await import('./auth.service');
-        // Try to refresh the token
-        const refreshSuccess = await authService.refreshToken();
+        try {
+          // Import dynamically to avoid circular dependency
+          const { authService } = await import('./auth.service');
+          // Try to refresh the token
+          const refreshSuccess = await authService.refreshToken();
 
-        if (refreshSuccess) {
-          // Retry the request with new token
-          const newToken = getAuthToken();
-          if (newToken) {
-            headers.set("Authorization", `Bearer ${newToken}`);
+          if (refreshSuccess) {
+            // Retry the request with new token
+            const newToken = getAuthToken();
+            if (newToken) {
+              headers.set("Authorization", `Bearer ${newToken}`);
+            }
+
+            // Retry the original request with the new token
+            response = await fetch(fullUrl, {
+              ...options,
+              headers,
+              credentials: 'include', // Include cookies for CORS requests
+            });
+          } else {
+            // If refresh failed, clear auth data and throw error
+            clearAuthData();
+            throw new ApiError("Session expired. Please log in again.", 401);
           }
-
-          // Retry the original request with the new token
-          response = await fetch(fullUrl, {
-            ...options,
-            headers,
-          });
-        } else {
-          // If refresh failed, clear auth data and throw error
+        } catch (refreshError) {
+          // Handle errors during token refresh
           clearAuthData();
-          throw new ApiError("Session expired. Please log in again.", 401);
+          throw new ApiError("Authentication failed. Please log in again.", 401);
         }
       }
 
@@ -166,10 +181,18 @@ export const apiService = {
 
       // Handle network errors
       if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.error("Network error:", error);
         throw new ApiError("Network error: Unable to connect to server", 0);
       }
 
-      throw new ApiError((error as Error).message || "Network error", 0);
+      // Log the error for debugging
+      console.error("API request error:", error);
+
+      // Return a more user-friendly error message
+      throw new ApiError(
+        (error as Error).message || "An error occurred while connecting to the server",
+        0
+      );
     }
   },
 };

@@ -1,0 +1,234 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  Search,
+  Filter,
+  MessageSquare,
+  X,
+  CheckCircle2
+} from "lucide-react";
+import QuestionCard, { FollowUpQuestion } from "./QuestionCard";
+import QuestionEditorDialog from "./QuestionEditorDialog";
+
+interface QuestionLibraryProps {
+  questions: FollowUpQuestion[];
+  selectedQuestionIds: string[];
+  onCreateQuestion: (question: FollowUpQuestion) => void;
+  onUpdateQuestion: (question: FollowUpQuestion) => void;
+  onDeleteQuestion: (id: string) => void;
+  onSelectQuestion: (id: string) => void;
+  onSelectAll: () => void;
+  onClearSelection: () => void;
+}
+
+const QuestionLibrary: React.FC<QuestionLibraryProps> = ({
+  questions,
+  selectedQuestionIds,
+  onCreateQuestion,
+  onUpdateQuestion,
+  onDeleteQuestion,
+  onSelectQuestion,
+  onSelectAll,
+  onClearSelection,
+}) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [showEditorDialog, setShowEditorDialog] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<FollowUpQuestion | null>(null);
+
+  // Get unique categories from questions
+  const categories = ["all", ...Array.from(new Set(questions.map(q => q.category || "Other")))];
+
+  // Filter questions based on search query and category
+  const filteredQuestions = questions.filter((question) => {
+    const matchesSearch =
+      question.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      question.context.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = 
+      categoryFilter === "all" || 
+      question.category === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleCreateQuestion = () => {
+    setEditingQuestion(null);
+    setShowEditorDialog(true);
+  };
+
+  const handleEditQuestion = (question: FollowUpQuestion) => {
+    setEditingQuestion(question);
+    setShowEditorDialog(true);
+  };
+
+  const handleSaveQuestion = (question: FollowUpQuestion) => {
+    if (editingQuestion) {
+      onUpdateQuestion(question);
+    } else {
+      onCreateQuestion(question);
+    }
+  };
+
+  const handleDuplicateQuestion = (question: FollowUpQuestion) => {
+    const newQuestion = {
+      ...question,
+      id: `fq-${Date.now()}`,
+      question: `${question.question} (Copy)`,
+      isDefault: false,
+    };
+    onCreateQuestion(newQuestion);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-bold">Question Library</h2>
+          <p className="text-muted-foreground">Create and manage follow-up questions</p>
+        </div>
+        <Button 
+          onClick={handleCreateQuestion}
+          className="bg-[#D8A23B] text-[#09090B] hover:bg-[#D8A23B]/90 shrink-0"
+        >
+          <Plus className="h-4 w-4 mr-2" /> New Question
+        </Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search questions..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0 h-9 w-9"
+              onClick={() => setSearchQuery("")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select
+            value={categoryFilter}
+            onValueChange={setCategoryFilter}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category === "all" ? "All Categories" : category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-muted-foreground">
+          {filteredQuestions.length} questions found
+          {selectedQuestionIds.length > 0 && ` • ${selectedQuestionIds.length} selected`}
+        </div>
+        <div className="flex items-center gap-2">
+          {selectedQuestionIds.length > 0 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClearSelection}
+              className="h-8 px-2 text-xs"
+            >
+              <X className="h-3.5 w-3.5 mr-1" />
+              Clear Selection
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSelectAll}
+              className="h-8 px-2 text-xs"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+              Select All
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {filteredQuestions.length === 0 ? (
+        <div className="text-center py-12 border rounded-md">
+          <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+          <h3 className="text-lg font-medium mb-1">No questions found</h3>
+          <p className="text-muted-foreground mb-4">
+            {searchQuery || categoryFilter !== "all"
+              ? "Try adjusting your search or filters"
+              : "Create your first follow-up question to get started"}
+          </p>
+          {searchQuery || categoryFilter !== "all" ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setCategoryFilter("all");
+              }}
+            >
+              Clear Filters
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleCreateQuestion}
+              className="bg-[#D8A23B] text-[#09090B] hover:bg-[#D8A23B]/90"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Create Question
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredQuestions.map((question) => (
+            <QuestionCard
+              key={question.id}
+              question={question}
+              isSelected={selectedQuestionIds.includes(question.id)}
+              onSelect={onSelectQuestion}
+              onEdit={handleEditQuestion}
+              onDelete={onDeleteQuestion}
+              onDuplicate={handleDuplicateQuestion}
+            />
+          ))}
+        </div>
+      )}
+
+      <QuestionEditorDialog
+        open={showEditorDialog}
+        onOpenChange={setShowEditorDialog}
+        question={editingQuestion}
+        onSave={handleSaveQuestion}
+        isNew={!editingQuestion}
+      />
+    </div>
+  );
+};
+
+export default QuestionLibrary;

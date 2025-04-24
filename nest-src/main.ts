@@ -34,21 +34,25 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   // Register Fastify plugins
-  await app.register(fastifyHelmet, {
+  await app.register(fastifyHelmet as any, {
     contentSecurityPolicy: process.env.NODE_ENV === 'production',
   });
 
-  // Enable CORS
-  await app.register(fastifyCors, {
+  // Enable CORS with a simpler configuration for development
+  await app.register(fastifyCors as any, {
     origin: true, // Allow all origins in development
     credentials: true,
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+    exposedHeaders: ['Content-Disposition'],
+    maxAge: 86400, // 24 hours in seconds
   });
 
   // Set global prefix for all routes
   app.setGlobalPrefix("api");
 
   // Start the server
-  await app.listen(3001, '0.0.0.0');
+  await app.listen(5000, '0.0.0.0');
   console.log(`Application is running on: ${await app.getUrl()}/api`);
 }
 

@@ -41,7 +41,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
   }, [isSidebarCollapsed]);
 
   const toggleSidebar = () => {
-    setIsSidebarCollapsed((prev) => !prev);
+    setIsSidebarCollapsed((prev: boolean) => !prev);
   };
 
   return (
@@ -62,6 +62,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
           title={title}
           description={description}
           actions={actions}
+          isSidebarOpen={!isSidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
         />
 
         {breadcrumbItems.length > 0 && (

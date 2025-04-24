@@ -25,12 +25,25 @@ export class PermissionsService {
   }
 
   async getRolePermissions(role: string): Promise<string[]> {
+    // Admin role has all permissions
+    if (role === "admin") {
+      const allPermissions = await this.permissionsRepository.find();
+      return allPermissions.map(p => p.name);
+    }
+
+    // For other roles, get the permissions from the database
     const rolePermissions = await this.rolePermissionsRepository.find({
       where: { role },
       relations: ["permission"],
     });
 
-    return rolePermissions.map((rp) => rp.permissionId);
+    // Get the permission names
+    const permissionIds = rolePermissions.map(rp => rp.permissionId);
+    const permissions = await this.permissionsRepository.find({
+      where: { id: In(permissionIds) }
+    });
+
+    return permissions.map(p => p.name);
   }
 
   async hasPermission(role: string, permissionName: string): Promise<boolean> {
@@ -97,19 +110,35 @@ export class PermissionsService {
   async getAllRolePermissions(): Promise<
     { role: string; permissions: string[] }[]
   > {
+    // Get all permissions
+    const allPermissions = await this.permissionsRepository.find();
+    const permissionMap = allPermissions.reduce((map, p) => {
+      map[p.id] = p.name;
+      return map;
+    }, {} as Record<string, string>);
+
     // Get all role permissions
-    const rolePermissions = await this.rolePermissionsRepository.find({
-      relations: ["permission"],
-    });
+    const rolePermissions = await this.rolePermissionsRepository.find();
 
     // Group by role
     const roleMap: Record<string, string[]> = {};
 
+    // Add admin role with all permissions
+    roleMap["admin"] = allPermissions.map(p => p.name);
+
+    // Process other roles
     for (const rp of rolePermissions) {
+      if (rp.role === "admin") continue; // Skip admin as we've already added it
+
       if (!roleMap[rp.role]) {
         roleMap[rp.role] = [];
       }
-      roleMap[rp.role].push(rp.permissionId);
+
+      // Add the permission name to the role's permissions
+      const permissionName = permissionMap[rp.permissionId];
+      if (permissionName) {
+        roleMap[rp.role].push(permissionName);
+      }
     }
 
     // Convert to array

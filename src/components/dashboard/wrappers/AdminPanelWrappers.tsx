@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 // Import all admin panel components
-import AIModelConfig from "@/components/dashboard/AIModelConfig";
+import AIModelConfigPanel from "@/components/dashboard/AIModelConfigPanel";
 import ContextRulesPanel from "@/components/dashboard/ContextRulesPanel";
 import PromptTemplatesPanel from "@/components/dashboard/PromptTemplatesPanel";
 import AnalyticsPanel from "@/components/dashboard/AnalyticsPanel";
@@ -26,11 +26,6 @@ import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 
 // AIModelConfig Wrapper
 export const AIModelConfigWrapper: React.FC = () => {
-  const handleSaveConfig = () => {
-    // This will be passed to the AIModelConfig component
-    console.log("Saving configuration...");
-  };
-
   return (
     <DashboardPage
       title="AI Model Configuration"
@@ -39,14 +34,10 @@ export const AIModelConfigWrapper: React.FC = () => {
         { label: "Dashboard", href: ROUTES.DASHBOARD },
         { label: "AI Models" },
       ]}
-      actions={
-        <Button className="gap-2" onClick={handleSaveConfig}>
-          <Save className="h-4 w-4" />
-          Save Configuration
-        </Button>
-      }
     >
-      <AIModelConfig onSave={handleSaveConfig} />
+      <AdminContent>
+        <AIModelConfigPanel />
+      </AdminContent>
     </DashboardPage>
   );
 };
@@ -90,7 +81,9 @@ export const PromptTemplatesPanelWrapper: React.FC = () => {
         </Button>
       }
     >
-      <PromptTemplatesPanel />
+      <AdminContent>
+        <PromptTemplatesPanel />
+      </AdminContent>
     </DashboardPage>
   );
 };
@@ -112,7 +105,9 @@ export const AnalyticsPanelWrapper: React.FC = () => {
         </Button>
       }
     >
-      <AnalyticsPanel />
+      <AdminContent>
+        <AnalyticsPanel />
+      </AdminContent>
     </DashboardPage>
   );
 };
@@ -132,7 +127,7 @@ export const WebScrapingPanelWrapper: React.FC = () => {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={() => (window.location.href = "/ai-integration")}
+            onClick={() => (window.location.href = "/dashboard/ai-models")}
           >
             <Brain className="h-4 w-4" />
             AI Integration
@@ -147,7 +142,9 @@ export const WebScrapingPanelWrapper: React.FC = () => {
         </div>
       }
     >
-      <WebScrapingPanel />
+      <AdminContent>
+        <WebScrapingPanel />
+      </AdminContent>
     </DashboardPage>
   );
 };
@@ -169,7 +166,9 @@ export const IntegrationPanelWrapper: React.FC = () => {
         </Button>
       }
     >
-      <IntegrationPanel />
+      <AdminContent>
+        <IntegrationPanel />
+      </AdminContent>
     </DashboardPage>
   );
 };
@@ -191,7 +190,9 @@ export const SystemConfigPanelWrapper: React.FC = () => {
         </Button>
       }
     >
-      <SystemConfigPanel />
+      <AdminContent>
+        <SystemConfigPanel />
+      </AdminContent>
     </DashboardPage>
   );
 };
@@ -213,7 +214,9 @@ export const KnowledgeBasePanelWrapper: React.FC = () => {
         </Button>
       }
     >
-      <KnowledgeBasePanel />
+      <AdminContent>
+        <KnowledgeBasePanel />
+      </AdminContent>
     </DashboardPage>
   );
 };

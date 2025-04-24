@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
+  TableHeader,  
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -430,14 +430,14 @@ const WebScrapingPanel: React.FC<WebScrapingPanelProps> = ({ defaultTab = "jobs-
             <CardContent>
               <div className="flex items-center mb-4">
                 <div className="relative max-w-sm mr-2">
-  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-    <Search className="h-4 w-4" />
-  </span>
-  <Input
-    placeholder="Search jobs..."
-    className="pl-10" // add left padding for the icon
-  />
-</div>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Search className="h-4 w-4" />
+                  </span>
+                  <Input
+                    placeholder="Search jobs..."
+                    className="pl-10" // add left padding for the icon
+                  />
+                </div>
                 <Select defaultValue="all">
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filter by status" />
@@ -1098,14 +1098,14 @@ const WebScrapingPanel: React.FC<WebScrapingPanelProps> = ({ defaultTab = "jobs-
               <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <div className="relative max-w-sm">
-  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-    <Search className="h-4 w-4" />
-  </span>
-  <Input
-    placeholder="Search in content..."
-    className="pl-10"
-  />
-</div>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <Search className="h-4 w-4" />
+                    </span>
+                    <Input
+                      placeholder="Search in content..."
+                      className="pl-10"
+                    />
+                  </div>
                   <Select defaultValue="all">
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Filter by job" />
@@ -1283,7 +1283,7 @@ const WebScrapingPanel: React.FC<WebScrapingPanelProps> = ({ defaultTab = "jobs-
                 Showing{" "}
                 {selectedJob
                   ? mockScrapedData.filter((d) => d.jobId === selectedJob.id)
-                      .length
+                    .length
                   : mockScrapedData.length}{" "}
                 items
               </div>
@@ -1399,7 +1399,7 @@ const WebScrapingPanel: React.FC<WebScrapingPanelProps> = ({ defaultTab = "jobs-
             dataCount={
               selectedJob
                 ? mockScrapedData.filter((d) => d.jobId === selectedJob.id)
-                    .length
+                  .length
                 : mockScrapedData.length
             }
             onExport={(format, filters) =>

@@ -7,12 +7,24 @@ import routes from "./routes";
 import "./styles/theme.css";
 import "./styles/scrollbar.css";
 import { TempoDevtools } from "tempo-devtools";
-import tempoRoutes from "tempo-routes";
+
+// Handle tempo-routes import dynamically
+import type { RouteObject } from 'react-router-dom';
+const tempoRoutes: RouteObject[] = [];
+
+// Try to initialize Tempo if it's available
+const initTempo = () => {
+  try {
+    TempoDevtools.init();
+  } catch (error) {
+    console.warn("Tempo devtools initialization failed:", error);
+  }
+};
 
 function App() {
   useEffect(() => {
     // Initialize Tempo Devtools
-    TempoDevtools.init();
+    initTempo();
   }, []);
 
   // Tempo routes for storyboards

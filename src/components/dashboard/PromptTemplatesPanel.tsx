@@ -247,7 +247,7 @@ const PromptTemplatesPanel: React.FC<PromptTemplatesPanelProps> = ({ defaultTab 
 
   return (
     <div className="w-full h-full bg-background">
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="space-y-6 w-full mx-auto">
         <div className="flex justify-end">
           <Button onClick={handleCreateNewTemplate}>
             <Plus className="mr-2 h-4 w-4" /> Create New Template
@@ -297,14 +297,14 @@ const PromptTemplatesPanel: React.FC<PromptTemplatesPanelProps> = ({ defaultTab 
                   </Select>
                 </div>
 
-                <Table>
+                <Table className="w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Variables</TableHead>
-                      <TableHead>Last Updated</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="w-[40%]">Name</TableHead>
+                      <TableHead className="w-[15%]">Category</TableHead>
+                      <TableHead className="w-[10%]">Variables</TableHead>
+                      <TableHead className="w-[15%]">Last Updated</TableHead>
+                      <TableHead className="w-[20%]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -334,6 +334,7 @@ const PromptTemplatesPanel: React.FC<PromptTemplatesPanelProps> = ({ defaultTab 
                                 handleEditTemplate(template);
                                 setActiveTab("test-template");
                               }}
+
                             >
                               <Play className="h-4 w-4" />
                             </Button>
@@ -341,6 +342,7 @@ const PromptTemplatesPanel: React.FC<PromptTemplatesPanelProps> = ({ defaultTab 
                               variant="outline"
                               size="sm"
                               onClick={() => handleEditTemplate(template)}
+
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -503,6 +505,7 @@ const PromptTemplatesPanel: React.FC<PromptTemplatesPanelProps> = ({ defaultTab 
                 <Button
                   variant="outline"
                   onClick={() => setActiveTab("templates-list")}
+
                 >
                   Cancel
                 </Button>
@@ -511,6 +514,7 @@ const PromptTemplatesPanel: React.FC<PromptTemplatesPanelProps> = ({ defaultTab 
                     variant="outline"
                     onClick={() => setActiveTab("test-template")}
                     disabled={!selectedTemplate}
+
                   >
                     <Play className="mr-2 h-4 w-4" />
                     Test Template
@@ -580,6 +584,7 @@ const PromptTemplatesPanel: React.FC<PromptTemplatesPanelProps> = ({ defaultTab 
                         size="sm"
                         onClick={handleCopyTemplate}
                         disabled={!testResult}
+
                       >
                         {copied ? (
                           <>

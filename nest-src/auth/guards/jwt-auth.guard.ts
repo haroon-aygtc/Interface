@@ -12,19 +12,37 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Extract the JWT from the request
-    const request = context.switchToHttp().getRequest<FastifyRequest>();
-    const token = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+    try {
+      // Extract the JWT from the request
+      const request = context.switchToHttp().getRequest<FastifyRequest>();
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
 
-    // Check if the token is blacklisted
-    if (token) {
+      // If no token is provided, throw an unauthorized exception
+      if (!token) {
+        throw new UnauthorizedException('No authentication token provided');
+      }
+
+      // Check if the token is blacklisted
       const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(token);
       if (isBlacklisted) {
         throw new UnauthorizedException('Token has been revoked');
       }
-    }
 
-    // Continue with the default JWT authentication
-    return super.canActivate(context) as Promise<boolean>;
+      // Continue with the default JWT authentication
+      const result = await super.canActivate(context) as boolean;
+
+      // If authentication failed, throw an unauthorized exception
+      if (!result) {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
+
+      return result;
+    } catch (error) {
+      // Handle any errors that occur during authentication
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Authentication failed');
+    }
   }
 }
